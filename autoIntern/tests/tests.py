@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.http import HttpResponse
+# Create your tests here.
+from django.test import TestCase
+from django.test import Client
 
-
-def index(request):
-    return HttpResponse("Hello AutoIntern! This is the index page......more to come")
+class ViewsTestCase(TestCase):
+    def testIndex(self):
+        client = Client()
+        response = client.get('/')
+        assert("AutoIntern" in str(response.content))
