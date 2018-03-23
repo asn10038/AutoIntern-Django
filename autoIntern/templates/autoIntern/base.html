@@ -21,7 +21,7 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
             </li>
       <!--<li class="nav-item">-->
         <!--<a class="nav-link" href="#">Cases</a>-->
@@ -45,7 +45,7 @@
         {% if user is null %}
             <form action="/login/" method="post" class="form-inline my-2 my-lg-0">
                 {% csrf_token %}
-                <input class="form-control mr-sm-2" type="text" placeholder="username" aria-label="username" name="email">
+                <input class="form-control mr-sm-2" type="text" placeholder="Email" aria-label="username" name="email">
                 <input class="form-control mr-sm-2" type="password" placeholder="Password" aria-label="password" name="password">
                 <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Login</button>
             </form>
@@ -124,3 +124,7 @@
     </div>
   </div>
 </div>
+
+<!-- Actual Content of the Page -->
+{% block content %}
+{% endblock %}

@@ -16,17 +16,33 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.template import loader
 from autoIntern.forms import UserForm
-from autoIntern.models import User
+from autoIntern import models
+from autoIntern.parse_identifiers import GetDocumentByHeader
 
-
-loggedIn = False
-currentUser = None
 def index(request):
-    template = loader.get_template('autoIntern/index.html')
+    template = loader.get_template('autoIntern/homePage.html')
     userForm = UserForm()
 
-    context = {'userForm' : userForm, 'user':currentUser}
-    return HttpResponse(template.render(context,request))
+    # Check if user is logged in
+    if request.session.get("userEmail") == None:
+        context = {'userForm' : UserForm(), 'user' : None}
+        return HttpResponse(template.render(context, request))
+    else:
+        user = User.objects.get(email=request.session.get("userEmail"))
+        context = {'userForm' : UserForm(), 'user' : user}
+        return HttpResponse(template.render(context, request))
+
+def viewDocument(request):
+    if request.method == 'GET':
+        print(request.GET)
+        userForm = UserForm()
+        template = loader.get_template('autoIntern/viewDocument.html')
+        user = User.objects.get(email=request.session.get("userEmail"))
+        # Check if user == None?
+        context = {'userForm': UserForm(), 'user' : user}
+        return HttpResponse(template.render(context, request))
+    else:
+        return HttpResponseRedirect('/')
 
 def register(request):
     """Register Users"""
@@ -34,29 +50,29 @@ def register(request):
     if request.method == 'POST':
         userForm = UserForm(request.POST)
         if userForm.is_valid():
-            user = User()
-            user = User(**userForm.cleaned_data)
+            user = models.User()
+            user = models.User(**userForm.cleaned_data)
             user.save()
-            print('about to return the http resopnse')
-        return HttpResponse(loader.get_template('autoIntern/index.html').render({'userForm':userForm, 'user':currentUser}, request))
+            request.session['userEmail'] = user.email
+        return HttpResponse(loader.get_template('autoIntern/homePage.html').render({'userForm':userForm, 'user':user}, request))
 
     if request.method == 'GET':
-        return HttpResponse(loader.get_template('autoIntern/index.html').render({'userForm': userForm, 'user':currentUser}, request))
+        return HttpResponse(loader.get_template('autoIntern/homePage.html').render({'userForm': userForm, 'user':None}, request))
 
 def login(request):
     """Defines the login behavior"""
     if request.method == 'POST':
         email = request.POST.get("email")
         password = request.POST.get("password")
-        print('POST is: ' + str(request.POST))
-        template = loader.get_template('autoIntern/index.html')
+        template = loader.get_template('autoIntern/homePage.html')
         userForm = UserForm()
         user = None
+        # Get first 10 documents here and add to context
         context = {'userForm': userForm, 'user': user}
         try:
-            user = User.objects.get(email=email)
+            user = models.User.objects.get(email=email)
             if password == user.password:
-                print('the user is now logged in')
+                request.session['userEmail'] = user.email
                 context = {'userForm': userForm, 'user': user}
                 return HttpResponse(template.render(context,request))
 
@@ -66,9 +82,30 @@ def login(request):
 def logout(request):
     """Defines the logout behavior"""
     if request.method == 'POST':
-        context = {'userForm' : UserForm(), 'user' : None}
-        template = loader.get_template('autoIntern/index.html')
-        return HttpResponse(template.render(context, request))
+        template = loader.get_template('autoIntern/homePage.html')
+        context = {'userForm': UserForm(), 'user': None}
+        request.session['userEmail'] = None
+        return HttpResponseRedirect('/')
+        #return HttpResponse(template.render(context, request))
     else:
         return HttpResponseRedirect('/')
 
+def upload(request):
+    '''Handles Local file uploads'''
+    if request.method == 'POST':
+        userForm = UserForm()
+        template = loader.get_template('autoIntern/homePage.html')
+
+        # for line in request.FILES['uploadFile']:
+        #     print(line)
+
+        #####################################
+        user = models.User.objects.get(email=request.session.get("userEmail"))
+        context = {'userForm' : UserForm(), 'user' : user}
+
+        new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
+        new_document.save()
+
+        return HttpResponse(template.render(context, request))
+    else:
+        return HttpResponseRedirect('/')
