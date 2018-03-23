@@ -5,3 +5,5 @@ django-bootstrap4
 django-widget-tweaks
 psycopg2==2.7.1
 django-storages
+google
+google-cloud
