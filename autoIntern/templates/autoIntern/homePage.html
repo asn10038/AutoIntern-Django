@@ -26,9 +26,11 @@
     </tr>
   </thead>
   <tbody>
+    {% for doc_id in doc_ids %}
     <tr>
-      <td><a href="/viewDocument/"> Document1</a></td>
+      <td><a href="/viewDocument?id={{ doc_id }}"> {{ doc_id }}</a></td>
     </tr>
+    {% endfor %}
   </tbody>
 </table>
 
