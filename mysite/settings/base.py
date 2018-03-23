@@ -1,11 +1,16 @@
 import os
 import sys
+from django.conf import settings
+from django.core.files.storage import default_storage
+from google.cloud import storage
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # FIX ASAP
 SECRET_KEY = 'pf-@jxtojga)z+4s*uwbgjrq$aep62-thd0q7f&o77xtpka!_m'
+
+#
 
 DEBUG = True
 
@@ -22,7 +27,8 @@ INSTALLED_APPS = (
     'autoIntern',
     'bootstrap4',
     'widget_tweaks',
-    'storages'
+    'storages',
+    'google.cloud.storage'
 )
 
 MIDDLEWARE = (
@@ -127,13 +133,49 @@ STATIC_URL = 'https://storage.googleapis.com/autointern-dev/static/'
 STATIC_ROOT = 'static/'
 # [END staticurl]
 
-from django.conf import settings
-from django.core.files.storage import default_storage
+
+
+
+try:
+    from google.cloud.storage.client import Client
+    from google.cloud.storage.blob import Blob
+    from google.cloud.exceptions import NotFound
+except ImportError:
+    raise ImproperlyConfigured("Could not load Google Cloud Storage bindings.\n"
+                               "See https://github.com/GoogleCloudPlatform/gcloud-python")
+
+
 
 # Google Cloud Static Settings
 # [START Gcloud Static]
-settings.configure(DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage')
-GS_BUCKET_NAME = 'autointern-dev/static/document_folder'
+######################
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = 'autointern-dev'  # /static/document_folder'
 GS_PROJECT_ID = 'autointern-dev'
-# [END Gcloud Static]
+GOOGLE_APPLICATION_CREDENTIALS = 'AutoIntern-Django/static/autointern-DEV-6bf11db3b304.json'
+# GS_CREDENTIALS = 'AutoIntern-Django/static/autointern-DEV-6bf11db3b304.json'
+
+####
+# project_id = setting('GS_PROJECT_ID', None)
+# credentials = setting('GS_CREDENTIALS', None)
+# setting('GS_BUCKET_NAME', None)
+# location = setting('GS_LOCATION', '')
+# auto_create_bucket = setting('GS_AUTO_CREATE_BUCKET', False)
+# auto_create_acl = setting('GS_AUTO_CREATE_ACL', 'projectPrivate')
+# file_name_charset = setting('GS_FILE_NAME_CHARSET', 'utf-8')
+# file_overwrite = setting('GS_FILE_OVERWRITE', True)
+# max_memory_size = setting('GS_MAX_MEMORY_SIZE', 0)
+######
+
+#  [END Gcloud Static]
+
+
+
+# Local file storage setting
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+
+
+#### media root fix ???
+
+# MEDIA_ROOT = os.path.join(DEFAULT_FILE_STORAGE, '/document_folder/')
 
