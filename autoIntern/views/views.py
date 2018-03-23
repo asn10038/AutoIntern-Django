@@ -23,8 +23,26 @@ def index(request):
     template = loader.get_template('autoIntern/homePage.html')
     userForm = UserForm()
 
-    context = {'userForm' : userForm, 'user':None}
-    return HttpResponse(template.render(context,request))
+    # Check if user is logged in
+    if request.session.get("userEmail") == None:
+        context = {'userForm' : UserForm(), 'user' : None}
+        return HttpResponse(template.render(context, request))
+    else:
+        user = User.objects.get(email=request.session.get("userEmail"))
+        context = {'userForm' : UserForm(), 'user' : user}
+        return HttpResponse(template.render(context, request))
+
+def viewDocument(request):
+    if request.method == 'GET':
+        print(request.GET)
+        userForm = UserForm()
+        template = loader.get_template('autoIntern/viewDocument.html')
+        user = User.objects.get(email=request.session.get("userEmail"))
+        # Check if user == None?
+        context = {'userForm': UserForm(), 'user' : user}
+        return HttpResponse(template.render(context, request))
+    else:
+        return HttpResponseRedirect('/')
 
 def register(request):
     """Register Users"""
@@ -49,6 +67,7 @@ def login(request):
         template = loader.get_template('autoIntern/homePage.html')
         userForm = UserForm()
         user = None
+        # Get first 10 documents here and add to context
         context = {'userForm': userForm, 'user': user}
         try:
             user = models.User.objects.get(email=email)
@@ -66,7 +85,8 @@ def logout(request):
         template = loader.get_template('autoIntern/homePage.html')
         context = {'userForm': UserForm(), 'user': None}
         request.session['userEmail'] = None
-        return HttpResponse(template.render(context, request))
+        return HttpResponseRedirect('/')
+        #return HttpResponse(template.render(context, request))
     else:
         return HttpResponseRedirect('/')
 
@@ -89,5 +109,3 @@ def upload(request):
         return HttpResponse(template.render(context, request))
     else:
         return HttpResponseRedirect('/')
-
-
