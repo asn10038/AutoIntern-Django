@@ -16,14 +16,33 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.template import loader
 from autoIntern.forms import UserForm
-from autoIntern.models import User
+from autoIntern import models
+from autoIntern.parse_identifiers import GetDocumentByHeader
 
 def index(request):
     template = loader.get_template('autoIntern/homePage.html')
     userForm = UserForm()
 
-    context = {'userForm' : userForm, 'user':None}
-    return HttpResponse(template.render(context,request))
+    # Check if user is logged in
+    if request.session.get("userEmail") == None:
+        context = {'userForm' : UserForm(), 'user' : None}
+        return HttpResponse(template.render(context, request))
+    else:
+        user = User.objects.get(email=request.session.get("userEmail"))
+        context = {'userForm' : UserForm(), 'user' : user}
+        return HttpResponse(template.render(context, request))
+
+def viewDocument(request):
+    if request.method == 'GET':
+        print(request.GET)
+        userForm = UserForm()
+        template = loader.get_template('autoIntern/viewDocument.html')
+        user = User.objects.get(email=request.session.get("userEmail"))
+        # Check if user == None?
+        context = {'userForm': UserForm(), 'user' : user}
+        return HttpResponse(template.render(context, request))
+    else:
+        return HttpResponseRedirect('/')
 
 def register(request):
     """Register Users"""
@@ -31,8 +50,8 @@ def register(request):
     if request.method == 'POST':
         userForm = UserForm(request.POST)
         if userForm.is_valid():
-            user = User()
-            user = User(**userForm.cleaned_data)
+            user = models.User()
+            user = models.User(**userForm.cleaned_data)
             user.save()
             request.session['userEmail'] = user.email
         return HttpResponse(loader.get_template('autoIntern/homePage.html').render({'userForm':userForm, 'user':user}, request))
@@ -48,9 +67,10 @@ def login(request):
         template = loader.get_template('autoIntern/homePage.html')
         userForm = UserForm()
         user = None
+        # Get first 10 documents here and add to context
         context = {'userForm': userForm, 'user': user}
         try:
-            user = User.objects.get(email=email)
+            user = models.User.objects.get(email=email)
             if password == user.password:
                 request.session['userEmail'] = user.email
                 context = {'userForm': userForm, 'user': user}
@@ -65,7 +85,8 @@ def logout(request):
         template = loader.get_template('autoIntern/homePage.html')
         context = {'userForm': UserForm(), 'user': None}
         request.session['userEmail'] = None
-        return HttpResponse(template.render(context, request))
+        return HttpResponseRedirect('/')
+        #return HttpResponse(template.render(context, request))
     else:
         return HttpResponseRedirect('/')
 
@@ -75,13 +96,16 @@ def upload(request):
         userForm = UserForm()
         template = loader.get_template('autoIntern/homePage.html')
 
-        # DOM CREATE THE DOCUMENT MODEL HERE
-        for line in request.FILES['uploadFile']:
-            print(str(line))
+        # for line in request.FILES['uploadFile']:
+        #     print(line)
+
         #####################################
-        user = User.objects.get(email=request.session.get("userEmail"))
+        user = models.User.objects.get(email=request.session.get("userEmail"))
         context = {'userForm' : UserForm(), 'user' : user}
+
+        new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
+        new_document.save()
+
         return HttpResponse(template.render(context, request))
     else:
         return HttpResponseRedirect('/')
-
