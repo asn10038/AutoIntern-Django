@@ -29,33 +29,52 @@ def index(request):
         return HttpResponse(template.render(context, request))
     else:
         user = models.User.objects.get(email=request.session.get("userEmail"))
-        context = {'userForm' : UserForm(), 'user' : user}
+        doc_ids = get_doc_ids()
+        context = {'userForm' : UserForm(), 'user' : user, 'doc_ids': doc_ids}
         return HttpResponse(template.render(context, request))
+
+def get_doc_ids():
+    documents = models.Document.objects.all()
+
+    doc_ids = []
+
+    for document in documents:
+        doc_ids.append(document.doc_id)
+
+    return doc_ids
+
 
 def viewDocument(request):
     if request.method == 'GET':
         # If not logged in, redirect
         if request.session.get("userEmail") == None:
             return HttpResponseRedirect('/')
-        # Use try catch?
-        print(request.GET['id'])
-        userForm = UserForm()
-        template = loader.get_template('autoIntern/viewDocument.html')
-        user = models.User.objects.get(email=request.session.get("userEmail"))
-        document = models.Document.objects.get(doc_id="AMAZON_COM_INC.10-Q.20171027.txt")
-        file = str(document.file.read())
-        #print(file)
-        #print(document.file.read())
-        #document = models.Document.objects.get(doc_id="APPLE_INC.10-Q.20180202.txt")
-        #print(document.doc_id)
-        #print(document)
-        #for e in document:
-        #    print(e.doc_id)
-        # Check if user == None?
-        context = {'userForm': UserForm(), 'user' : user, "file" : file}
-        return HttpResponse(template.render(context, request))
-    else:
-        return HttpResponseRedirect('/')
+
+        try:
+            userForm = UserForm()
+            template = loader.get_template('autoIntern/viewDocument.html')
+            user = models.User.objects.get(email=request.session.get("userEmail"))
+
+            cur_doc_id = request.GET['id']
+            document = models.Document.objects.get(doc_id=cur_doc_id)
+            file = document.file.read().decode('utf-8')
+            #"AMAZON_COM_INC.10-Q.20171027.txt")
+
+            doc_ids = get_doc_ids()
+
+            context = {'userForm': UserForm(), 'user' : user, "file" : file, 'doc_ids': doc_ids}
+            return HttpResponse(template.render(context, request))
+
+        except:
+            userForm = UserForm()
+            template = loader.get_template('autoIntern/homePage.html')
+            user = models.User.objects.get(email=request.session.get("userEmail"))
+
+            doc_ids = get_doc_ids()
+
+            context = {'userForm': UserForm(), 'user' : user, 'doc_ids': doc_ids}
+            return HttpResponse(template.render(context, request))
+
 
 def register(request):
     """Register Users"""
@@ -86,7 +105,10 @@ def login(request):
             user = models.User.objects.get(email=email)
             if password == user.password:
                 request.session['userEmail'] = user.email
-                context = {'userForm': userForm, 'user': user}
+
+                doc_ids = get_doc_ids()
+
+                context = {'userForm': userForm, 'user': user, 'doc_ids': doc_ids}
                 return HttpResponse(template.render(context,request))
 
         except:
@@ -114,7 +136,8 @@ def upload(request):
 
         #####################################
         user = models.User.objects.get(email=request.session.get("userEmail"))
-        context = {'userForm' : UserForm(), 'user' : user}
+        doc_ids = get_doc_ids()
+        context = {'userForm' : UserForm(), 'user' : user, 'doc_ids': doc_ids}
 
         new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
         new_document.save()

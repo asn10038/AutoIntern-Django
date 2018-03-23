@@ -19,7 +19,8 @@
     <!-- as well as scrape a url for the content and add it to the file system -->
     {% if file is null %}
     {% else %}
-    <div type="text/html"> {{ file }} </div>
+    <!--<iframe srcdoc={{file}}> </iframe> -->
+    {{ file | safe }}
     {% endif %}
 
 
