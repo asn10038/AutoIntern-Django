@@ -1,4 +1,3 @@
-
 # creating test for storage of data
 
 from autoIntern.models import Document
@@ -54,7 +53,5 @@ class DocumentModelTest(TestCase):
 
     def test_document_save(self):
         doc = Document.objects.get(doc_id='APPLE_INC.10-K.20171103')
-        content = doc.file.url
+        content = str(doc.file.url).replace("%2F", "/")
         self.assertEquals(content, 'https://storage.googleapis.com/autointern-dev/static/document_folder/testing_file.txt')
-
-

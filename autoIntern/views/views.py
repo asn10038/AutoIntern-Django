@@ -28,18 +28,31 @@ def index(request):
         context = {'userForm' : UserForm(), 'user' : None}
         return HttpResponse(template.render(context, request))
     else:
-        user = User.objects.get(email=request.session.get("userEmail"))
+        user = models.User.objects.get(email=request.session.get("userEmail"))
         context = {'userForm' : UserForm(), 'user' : user}
         return HttpResponse(template.render(context, request))
 
 def viewDocument(request):
     if request.method == 'GET':
-        print(request.GET)
+        # If not logged in, redirect
+        if request.session.get("userEmail") == None:
+            return HttpResponseRedirect('/')
+        # Use try catch?
+        print(request.GET['id'])
         userForm = UserForm()
         template = loader.get_template('autoIntern/viewDocument.html')
-        user = User.objects.get(email=request.session.get("userEmail"))
+        user = models.User.objects.get(email=request.session.get("userEmail"))
+        document = models.Document.objects.get(doc_id="AMAZON_COM_INC.10-Q.20171027.txt")
+        file = str(document.file.read())
+        #print(file)
+        #print(document.file.read())
+        #document = models.Document.objects.get(doc_id="APPLE_INC.10-Q.20180202.txt")
+        #print(document.doc_id)
+        #print(document)
+        #for e in document:
+        #    print(e.doc_id)
         # Check if user == None?
-        context = {'userForm': UserForm(), 'user' : user}
+        context = {'userForm': UserForm(), 'user' : user, "file" : file}
         return HttpResponse(template.render(context, request))
     else:
         return HttpResponseRedirect('/')

@@ -12,11 +12,17 @@
       <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
     </div>
 {% else %}
-<!-- what the user sees if they are logged in -->
-<!-- Probably will be the filesystem or cases or something like that -->
+    <!-- what the user sees if they are logged in -->
+    <!-- Probably will be the filesystem or cases or something like that -->
 
-<!-- For now going to show an upload button that allows to upload local Files -->
-<!-- as well as scrape a url for the content and add it to the file system -->
+    <!-- For now going to show an upload button that allows to upload local Files -->
+    <!-- as well as scrape a url for the content and add it to the file system -->
+    {% if file is null %}
+    {% else %}
+    <div type="text/html"> {{ file }} </div>
+    {% endif %}
+
+
 
 
 {% endif %}
