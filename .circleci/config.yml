@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build-test:
+  buildTest:
     docker:
       - image: circleci/python:3.6.1
 
@@ -46,12 +46,12 @@ jobs:
     working_directory: ~/AutoIntern-Django
     steps:
       - checkout
-      
+
       - run:
           name: Set Up GOOGLE_CLOUD_DEFAULT_CREDENTIALS
           command: |
             echo $DEV_SECRET | base64 -di > /tmp/dev_secret.json
-            
+
       - run:
           name: Deploy To Dev Server
           command: |
@@ -62,40 +62,18 @@ jobs:
             gcloud config set project $DEV_ID
             gcloud -q app deploy dev_app.yaml --promote --version=1
 
-  deployUAT:
-    machine:
-      enabled: true
-    working_directory: ~/AutoIntern-Django
-    steps:
-      - checkout
-      
-      - run:
-          name: Set Up GOOGLE_CLOUD_DEFAULT_CREDENTIALS
-          command: |
-            echo $UAT_SECRET | base64 -di > /tmp/uat_secret.json
-            
-      - run:
-          name: Deploy To UAT Server
-          command: |
-            export GOOGLE_APPLICATION_CREDENTIALS="/tmp/uat_secret.json"
-            export ENVIRONMENT="UAT"
-            gcloud --quiet components update app
-            gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS
-            gcloud config set project $UAT_ID
-            gcloud -q app deploy uat_app.yaml --promote --version=1
-
   deployProd:
     machine:
       enabled: true
     working_directory: ~/AutoIntern-Django
     steps:
       - checkout
-      
+
       - run:
           name: Set Up GOOGLE_CLOUD_DEFAULT_CREDENTIALS
           command: |
             echo $PROD_SECRET | base64 -di > /tmp/prod_secret.json
-            
+
       - run:
           name: Deploy To Prod Server
           command: |
@@ -108,31 +86,27 @@ jobs:
 
 workflows:
   version: 2
-  build-test-deploy:
+  buildTestDeploy:
     jobs:
-      - build-test
-      
+      - buildTest
+
       - deployDev:
           filters:
             branches:
               only:
                 - dev
           requires:
-            - build-test
-      
-      - deployUAT:
+            - buildTest
+
+      - holdDeployProd:
           filters:
             branches:
               only:
                 - master
-          requires:
-            - build-test
-
-      - holdDeployProd:
           type: approval
           requires:
-            - deployUAT
-            
+            - buildTest
+
       - deployProd:
           requires:
             - holdDeployProd
