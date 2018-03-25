@@ -12,15 +12,9 @@ DATABASES = {
         'USER': 'postgres',
         'PASSWORD': 'supersecret',
         'PORT': '5432',
+        'HOST': '/cloudsql/autointern-prod:us-east1:autointern-prod'
     },
 }
-
-DATABASES['default']['HOST'] = '/cloudsql/autointern-prod:us-east1:autointern-prod'
-
-if os.getenv('GAE_INSTANCE'):
-    pass
-else:
-    DATABASES['default']['HOST'] = '127.0.0.1'
 # [END dbconfig]
 
 
