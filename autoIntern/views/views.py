@@ -18,6 +18,8 @@ from django.template import loader
 from autoIntern.forms import UserForm
 from autoIntern import models
 from autoIntern.parse_identifiers import GetDocumentByHeader
+import json
+import csv
 
 def index(request):
     template = loader.get_template('autoIntern/homePage.html')
@@ -143,5 +145,39 @@ def upload(request):
         new_document.save()
 
         return HttpResponse(template.render(context, request))
+    else:
+        return HttpResponseRedirect('/')
+
+def exportTags(request):
+    ''' Exports tags associated with document'''
+    # Tags to be exported:
+    TAGS = ['company', 'doc_type', 'doc_date']
+
+    if request.method == 'POST':
+        try:
+            path = request.POST['path']
+            doc_id = path.split("=", maxsplit=1)[1]
+            doc = models.Document.objects.get(doc_id=doc_id)
+            vals = doc.__dict__
+
+            #dict_tags => contains tags and corresponding values
+            dict_tags = {tag : vals[tag] for tag in TAGS}
+
+            #Create json
+            s = json.dumps(dict_tags)
+            conv = json.loads(s)
+
+            # Create the HttpResponse object with the appropriate CSV header.
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.csv"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+
+            writer = csv.writer(response)
+            for tag in TAGS:
+                writer.writerow([tag, conv[tag]])
+
+            return response
+
+        except:
+            return HttpResponseRedirect('/')
     else:
         return HttpResponseRedirect('/')
