@@ -19,6 +19,34 @@
     <!-- as well as scrape a url for the content and add it to the file system -->
     {% if file is null %}
     {% else %}
+
+    <button class="btn btn-outline-primary" data-toggle="modal" type="button" data-target="#exportTags">Export Tags</button>
+
+    <!-- Export modal -->
+    <div class="modal" tabindex="-1" role="alertdialog" id="exportTags">
+      <div class="modal-dialog" role="alertdialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Export Tags</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+              <form action="/exportTags/" method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="path" value="{{ request.get_full_path }}">
+                  <button type="submit" class="btn btn-outline-primary">Export</button>
+                  Download all tags as .CSV file
+              </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!--<iframe srcdoc={{file}}> </iframe> -->
     {{ file | safe }}
     {% endif %}
