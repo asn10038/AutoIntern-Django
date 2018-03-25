@@ -164,16 +164,41 @@ def exportTags(request):
             dict_tags = {tag : vals[tag] for tag in TAGS}
 
             #Create json
-            s = json.dumps(dict_tags)
-            conv = json.loads(s)
+            js = json.dumps(dict_tags)
+            conv = json.loads(js)
 
-            # Create the HttpResponse object with the appropriate CSV header.
-            response = HttpResponse(content_type='text/csv')
-            response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.csv"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+            if 'csv' in request.POST:
+                # Create the HttpResponse object with the appropriate CSV header.
+                response = HttpResponse(content_type='text/csv; charset=utf8')
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.csv"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
 
-            writer = csv.writer(response)
-            for tag in TAGS:
-                writer.writerow([tag, conv[tag]])
+                writer = csv.writer(response)
+                for tag in TAGS:
+                    writer.writerow([tag, conv[tag]])
+
+            elif 'txt' in request.POST:
+                out = ''
+                for k, v in conv.items():
+                    out += k
+                    out += ': '
+                    out += v
+                    out += '\r\n'
+
+                # Remove the last, unnecessary newline
+                out = out[:-2]
+
+                # Create the HttpResponse object with the appropriate TXT header.
+                response = HttpResponse(out, content_type='text/plain; charset=utf8')
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.txt"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+
+            elif 'json' in request.POST:
+                print ("json")
+                response = HttpResponse(js, content_type='application/javascript; charset=utf8')
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.json"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+
+            else:
+                print('else')
+                return HttpResponseRedirect('/')
 
             return response
 
