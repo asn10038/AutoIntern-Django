@@ -193,12 +193,10 @@ def exportTags(request):
                 response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.txt"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
 
             elif 'json' in request.POST:
-                print ("json")
                 response = HttpResponse(js, content_type='application/javascript; charset=utf8')
                 response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.json"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
 
             else:
-                print('else')
                 return HttpResponseRedirect('/')
 
             return response
