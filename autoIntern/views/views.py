@@ -86,7 +86,8 @@ def register(request):
             user = models.User(**userForm.cleaned_data)
             user.save()
             request.session['userEmail'] = user.email
-        return HttpResponse(loader.get_template('autoIntern/homePage.html').render({'userForm':userForm, 'user':user}, request))
+            doc_ids = get_doc_ids()
+        return HttpResponse(loader.get_template('autoIntern/homePage.html').render({'userForm':userForm, 'user':user, 'doc_ids': doc_ids}, request))
 
     if request.method == 'GET':
         return HttpResponse(loader.get_template('autoIntern/homePage.html').render({'userForm': userForm, 'user':None}, request))
