@@ -8,5 +8,6 @@ urlpatterns = [
     url(r'login/', views.login, name='login'),
     url(r'logout/', views.logout, name='logout'),
     url(r'upload/',views.upload, name='upload'),
-    url(r'viewDocument', views.viewDocument, name='viewDocument')
+    url(r'viewDocument', views.viewDocument, name='viewDocument'),
+    url(r'exportTags/', views.exportTags, name='exportTags')
 ]
