@@ -20,6 +20,8 @@ DATABASES = {
 
 # Static files (CSS, JavaScript, Images)
 # [START staticurl]
+GS_BUCKET_NAME = 'autointern-prod'
+GS_PROJECT_ID = 'autointern-prod'
 STATIC_URL = 'https://storage.googleapis.com/autointern-prod/static/'
 STATIC_ROOT = 'static/'
 # [END staticurl]
