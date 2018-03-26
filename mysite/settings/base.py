@@ -152,7 +152,7 @@ except ImportError:
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = 'autointern-dev'  # /static/document_folder'
 GS_PROJECT_ID = 'autointern-dev'
-GOOGLE_APPLICATION_CREDENTIALS = 'AutoIntern-Django/static/autointern-DEV-6bf11db3b304.json'
+#GOOGLE_APPLICATION_CREDENTIALS = 'AutoIntern-Django/static/autointern-DEV-6bf11db3b304.json'
 # GS_CREDENTIALS = 'AutoIntern-Django/static/autointern-DEV-6bf11db3b304.json'
 
 ####
@@ -178,4 +178,3 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 #### media root fix ???
 
 # MEDIA_ROOT = os.path.join(DEFAULT_FILE_STORAGE, '/document_folder/')
-
