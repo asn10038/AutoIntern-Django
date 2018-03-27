@@ -7,14 +7,16 @@ from autoIntern.forms import UserForm
 
 class ViewDocumentTest(TestCase):
     def setUp(self):
-        user = User(email='test@test.com',
-                    displayName='test',
-                    firstName='test',
-                    lastName='test',
-                    group='test',
-                    password='test',
-                    title='test')
-        user.save()
+        form = UserForm({
+            'username': 'Test',
+            'email' : 'test@test.com',
+            'first_name': 'test',
+            'last_name': 'test',
+            'password': 'test'
+        })
+        if form.is_valid():
+            form.save()
+        user = User.objects.get(username="Test")
         content = b'10-K Report'
         doc = Document(company = 'APPLE_INC', doc_type = '10-K',
                        doc_date = '20171103',
@@ -26,30 +28,17 @@ class ViewDocumentTest(TestCase):
 
 
     def test_check_doc_loads_properly_login(self):
-        response = self.client.post("/login/", {
-            'email' : 'test@test.com',
-            'password' : 'test'
-        })
-        self.assertTrue('APPLE_INC.10-K.20171103' in str(response.content))
-
-
-    def test_check_doc_loads_properly_register(self):
-        response = self.client.post("/register/", {
-            'email' : 'test2@test.com',
-            'displayName': 'test2',
-            'firstName': 'test',
-            'lastName': 'test',
-            'group': 'test',
-            'password': 'test2',
-            'title': 'test2'
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
+            'password': 'test'
         })
         self.assertTrue('APPLE_INC.10-K.20171103' in str(response.content))
 
 
     def test_view_document_page(self):
-        response = self.client.post("/login/", {
-            'email' : 'test@test.com',
-            'password' : 'test'
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
+            'password': 'test'
         })
         # Go to document
         response = self.client.get("/viewDocument?id=APPLE_INC.10-K.20171103")

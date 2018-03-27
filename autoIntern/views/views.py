@@ -28,10 +28,13 @@ def userLogin(request):
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
 
+        context = {'userForm': UserForm()}
+
         # User successfully authenticated
         if user is not None:
             login(request, user)
-        return HttpResponseRedirect('/')
+            context = {'doc_ids': get_doc_ids()}
+        return render(request, 'autoIntern/homePage.html', context)
 
 
 def userLogout(request):

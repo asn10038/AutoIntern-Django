@@ -3,17 +3,20 @@ from autoIntern.models import User, Document
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.test import TestCase
+from autoIntern.forms import UserForm
 
 class ViewDocumentTest(TestCase):
     def setUp(self):
-        user = User(email='test@test.com',
-                    displayName='test',
-                    firstName='test',
-                    lastName='test',
-                    group='test',
-                    password='test',
-                    title='test')
-        user.save()
+        form = UserForm({
+            'username': 'Test',
+            'email' : 'test@test.com',
+            'first_name': 'test',
+            'last_name': 'test',
+            'password': 'test'
+        })
+        if form.is_valid():
+            form.save()
+        user = User.objects.get(username="Test")
         content = b'10-K Report'
         doc = Document(company = 'APPLE_INC', doc_type = '10-K',
                        doc_date = '20171103',
@@ -28,8 +31,8 @@ class ViewDocumentTest(TestCase):
         self.assertTrue("/" == response.url)
 
     def test_csv_output(self):
-        response = self.client.post("/login/", {
-            'email': 'test@test.com',
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
             'password': 'test'
         })
         response = self.client.post('/exportTags/', {
@@ -46,8 +49,8 @@ class ViewDocumentTest(TestCase):
         self.assertTrue("20171103" in output)
 
     def test_txt_output(self):
-        response = self.client.post("/login/", {
-            'email': 'test@test.com',
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
             'password': 'test'
         })
         response = self.client.post('/exportTags/', {
@@ -65,8 +68,8 @@ class ViewDocumentTest(TestCase):
         self.assertTrue("20171103" in output)
 
     def test_json_output(self):
-        response = self.client.post("/login/", {
-            'email': 'test@test.com',
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
             'password': 'test'
         })
         response = self.client.post('/exportTags/', {
@@ -84,8 +87,8 @@ class ViewDocumentTest(TestCase):
         self.assertTrue("20171103" in output)
 
     def test_invalid_doc_id_format(self):
-        response = self.client.post("/login/", {
-            'email': 'test@test.com',
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
             'password': 'test'
         })
         response = self.client.post('/exportTags/', {

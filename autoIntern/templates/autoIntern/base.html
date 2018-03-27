@@ -30,7 +30,7 @@
     <!-- if user is not logged in -->
     {% if user.is_authenticated %}
     <!-- TODO Put a user icon here -->
-    <h3><a class="nav-link"> Hello, {{ user.username }} </a></h3>
+    <h3><a class="nav-link"> Hello, {{ user.first_name }} </a></h3>
     <form action="/userLogout/" method="post">
       {% csrf_token %}
       <button class="btn btn-outline-info my-2 my-sm-0" type="submit">logout</button>

@@ -9,24 +9,21 @@ class RegisterFormTest(TestCase):
 
     def test_valid_data(self):
         form = UserForm({
+            'username': 'Test',
             'email' : 'test@test.com',
-            'displayName': 'test',
-            'firstName': 'test',
-            'lastName': 'test',
-            'group': 'test',
-            'password': 'test',
-            'title': 'test'
+            'first_name': 'test',
+            'last_name': 'test',
+            'password': 'test'
         })
         self.assertTrue(form.is_valid())
 
     def test_invalid_data(self):
         form = UserForm({
-            'displayName': 'test',
-            'firstName': 'test',
-            'lastName': 'test',
-            'group': 'test',
-            'password': 'test',
-            'title': 'test'
+            'username': 'Test',
+            'email' : 'test',
+            'first_name': 'test',
+            'last_name': 'test',
+            'password': 'test'
         })
         self.assertFalse(form.is_valid())
 
@@ -37,31 +34,29 @@ class RegisterFormTest(TestCase):
     def test_register_user_form_view(self):
         user_count = User.objects.count()
         response = self.client.post("/register/", {
+            'username': 'Test',
             'email' : 'test@test.com',
-            'displayName': 'test',
-            'firstName': 'test',
-            'lastName': 'test',
-            'group': 'test',
-            'password': 'test',
-            'title': 'test'
+            'first_name': 'test',
+            'last_name': 'test',
+            'password': 'test'
         })
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(User.objects.count(), user_count + 1)
-        self.assertTrue(', test' in str(response.content))
 
     def test_user_login_view(self):
-        user = User(email = 'test',
-            displayName = 'test',
-            firstName = 'test',
-            lastName = 'test',
-            group = 'test',
-            password = 'test',
-            title = 'test')
-        user.save()
-        self.assertIsNotNone(User.objects.get(email='test'))
-        response = self.client.post("/login/", {
-            'email' : 'test',
-            'password' : 'test'
+        form = UserForm({
+            'username': 'Test',
+            'email' : 'test@test.com',
+            'first_name': 'test',
+            'last_name': 'test',
+            'password': 'test'
+        })
+        if form.is_valid():
+            form.save()
+        self.assertIsNotNone(User.objects.get(email='test@test.com'))
+
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
+            'password': 'test'
         })
         self.assertEqual(response.status_code, 200)
         self.assertTrue('Hello' in str(response.content))
