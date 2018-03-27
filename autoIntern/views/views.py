@@ -7,6 +7,8 @@ from django.contrib.auth.models import User
 from autoIntern.forms import UserForm
 from autoIntern import models
 from autoIntern.parse_identifiers import GetDocumentByHeader
+import json
+import csv
 
 
 def index(request):
@@ -92,5 +94,62 @@ def upload(request):
         context = {'doc_ids': get_doc_ids()}
 
         return render(request, 'autoIntern/homePage.html', context)
+    else:
+        return HttpResponseRedirect('/')
+
+def exportTags(request):
+    ''' Exports tags associated with document'''
+    # Tags to be exported:
+    TAGS = ['company', 'doc_type', 'doc_date']
+
+    if request.method == 'POST':
+        try:
+            path = request.POST['path']
+            doc_id = path.split("=", maxsplit=1)[1]
+            doc = models.Document.objects.get(doc_id=doc_id)
+            vals = doc.__dict__
+
+            #dict_tags => contains tags and corresponding values
+            dict_tags = {tag : vals[tag] for tag in TAGS}
+
+            #Create json
+            js = json.dumps(dict_tags)
+            conv = json.loads(js)
+
+            if 'csv' in request.POST:
+                # Create the HttpResponse object with the appropriate CSV header.
+                response = HttpResponse(content_type='text/csv; charset=utf8')
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.csv"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+
+                writer = csv.writer(response)
+                for tag in TAGS:
+                    writer.writerow([tag, conv[tag]])
+
+            elif 'txt' in request.POST:
+                out = ''
+                for k, v in conv.items():
+                    out += k
+                    out += ': '
+                    out += v
+                    out += '\r\n'
+
+                # Remove the last, unnecessary newline
+                out = out[:-2]
+
+                # Create the HttpResponse object with the appropriate TXT header.
+                response = HttpResponse(out, content_type='text/plain; charset=utf8')
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.txt"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+
+            elif 'json' in request.POST:
+                response = HttpResponse(js, content_type='application/javascript; charset=utf8')
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.json"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+
+            else:
+                return HttpResponseRedirect('/')
+
+            return response
+
+        except:
+            return HttpResponseRedirect('/')
     else:
         return HttpResponseRedirect('/')

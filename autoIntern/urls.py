@@ -9,5 +9,6 @@ urlpatterns = [
     url(r'userLogin/', views.userLogin, name = 'login'),
     url(r'userLogout/', views.userLogout, name='logout'),
     url(r'upload/',views.upload, name='upload'),
-    url(r'viewDocument', views.viewDocument, name='viewDocument')
+    url(r'viewDocument', views.viewDocument, name='viewDocument'),
+    url(r'exportTags/', views.exportTags, name='exportTags')
 ]
