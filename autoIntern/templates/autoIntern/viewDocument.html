@@ -5,43 +5,42 @@
 {% else %}
 <button class="btn btn-outline-primary" data-toggle="modal" type="button" data-target="#exportTags">Export Tags</button>
 
-    <!-- Export modal -->
-    <div class="modal" tabindex="-1" role="alertdialog" id="exportTags">
-      <div class="modal-dialog" role="alertdialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Export Tags - Choose filetype:</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-              <form action="/exportTags/" method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="path" value="{{ request.get_full_path }}">
-                  <input type="hidden" name="csv" value="">
-                  <button type="submit" class="btn btn-outline-primary">.CSV</button>
-              </form>
-              <form action="/exportTags/" method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="path" value="{{ request.get_full_path }}">
-                  <input type="hidden" name="txt" value="">
-                  <button type="submit" class="btn btn-outline-primary">.TXT</button>
-              </form>
-              <form action="/exportTags/" method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="path" value="{{ request.get_full_path }}">
-                  <input type="hidden" name="json" value="">
-                  <button type="submit" class="btn btn-outline-primary">.JSON</button>
-              </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
-          </div>
-        </div>
+<!-- Export modal -->
+<div class="modal" tabindex="-1" role="alertdialog" id="exportTags">
+  <div class="modal-dialog" role="alertdialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Export Tags - Choose filetype:</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="/exportTags/" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="path" value="{{ request.get_full_path }}">
+          <input type="hidden" name="csv" value="">
+          <button type="submit" class="btn btn-outline-primary">.CSV</button>
+        </form>
+        <form action="/exportTags/" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="path" value="{{ request.get_full_path }}">
+          <input type="hidden" name="txt" value="">
+          <button type="submit" class="btn btn-outline-primary">.TXT</button>
+        </form>
+        <form action="/exportTags/" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="path" value="{{ request.get_full_path }}">
+          <input type="hidden" name="json" value="">
+          <button type="submit" class="btn btn-outline-primary">.JSON</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>
-
+  </div>
+</div>
 
 <!-- Authenticated and there is a file -->
 {{ file | safe }}

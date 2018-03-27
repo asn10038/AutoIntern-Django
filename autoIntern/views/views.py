@@ -97,6 +97,9 @@ def upload(request):
     else:
         return HttpResponseRedirect('/')
 
+
+# TODO: This should be simplified
+@login_required(redirect_field_name='', login_url='/')
 def exportTags(request):
     ''' Exports tags associated with document'''
     # Tags to be exported:
@@ -148,7 +151,6 @@ def exportTags(request):
                 return HttpResponseRedirect('/')
 
             return response
-
         except:
             return HttpResponseRedirect('/')
     else:
