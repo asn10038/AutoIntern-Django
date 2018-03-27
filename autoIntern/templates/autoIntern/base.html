@@ -14,54 +14,37 @@
 
 <!-- navbar stuff -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">AutoIntern</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+  <a class="navbar-brand" href="#">AutoIntern</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
-            </li>
-      <!--<li class="nav-item">-->
-        <!--<a class="nav-link" href="#">Cases</a>-->
-      <!--</li>-->
-      <!--<li class="nav-item dropdown">-->
-        <!--<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
-          <!--Dropdown-->
-        <!--</a>-->
-        <!--<div class="dropdown-menu" aria-labelledby="navbarDropdown">-->
-          <!--<a class="dropdown-item" href="#">Action</a>-->
-          <!--<a class="dropdown-item" href="#">Another action</a>-->
-          <!--<div class="dropdown-divider"></div>-->
-          <!--<a class="dropdown-item" href="#">Something else here</a>-->
-        <!--</div>-->
-      <!--</li>-->
-            <li class="nav-item">
-                <a class="nav-link disabled" href="#">Cases</a>
-            </li>
-        </ul>
-        <!-- if user is not logged in -->
-        {% if user is null %}
-            <form action="/login/" method="post" class="form-inline my-2 my-lg-0">
-                {% csrf_token %}
-                <input class="form-control mr-sm-2" type="text" placeholder="Email" aria-label="username" name="email">
-                <input class="form-control mr-sm-2" type="password" placeholder="Password" aria-label="password" name="password">
-                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Login</button>
-            </form>
-            <button class="btn btn-outline-info my-2 my-sm-0" data-toggle="modal" type="button" data-target="#registerModal">Register</button>
-        {% else %}
-        <!-- TODO Put a user icon here -->
-        <h3><a class="nav-link"> Hello, {{ user.displayName }} </a></h3>
-        <form action="/logout/" method="post">
-            {% csrf_token %}
-            <button class="btn btn-outline-info my-2 my-sm-0" type="submit">logout</button>
-        </form>
-
-        {% endif %}
-
-    </div>
-
+  </button>
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link disabled" href="#">Cases</a>
+      </li>
+    </ul>
+    <!-- if user is not logged in -->
+    {% if user.is_authenticated %}
+    <!-- TODO Put a user icon here -->
+    <h3><a class="nav-link"> Hello, {{ user.username }} </a></h3>
+    <form action="/userLogout/" method="post">
+      {% csrf_token %}
+      <button class="btn btn-outline-info my-2 my-sm-0" type="submit">logout</button>
+    </form>
+    {% else %}
+    <form action="/userLogin/" method="post" class="form-inline my-2 my-lg-0">
+      {% csrf_token %}
+      <input class="form-control mr-sm-2" type="text" placeholder="Username" aria-label="username" name="username">
+      <input class="form-control mr-sm-2" type="password" placeholder="Password" aria-label="password" name="password">
+      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Login</button>
+    </form>
+    <button class="btn btn-outline-info my-2 my-sm-0" data-toggle="modal" type="button" data-target="#registerModal">Register</button>
+    {% endif %}
+  </div>
 </nav>
 
 <!-- Register Modal Window -->
@@ -75,48 +58,19 @@
         </button>
       </div>
       <div class="modal-body">
-          <form action="/register/" method="post">
-            {% csrf_token %}
-            <!--<div class="form-group">-->
-                <!--{{ userForm.email.errors }}-->
-                <!--{{ userForm.email }}-->
-            <!--</div>-->
-            {% for field in userForm %}
-                <div class="form-group">
-                {{ field.errors }}
-                {{ field }}
-                {% if field.help_text %}
-                    <p class="help">{{ field.help_text|safe }}</p>
-                {% endif %}
-                </div>
-            {% endfor %}
-            <!--<div class="form-group">-->
-                <!--<input type="email" class="form-control" id="registerEmail" aria-describedby="emailHelp" placeholder="Enter email" value="{{ registerEmail }}">-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<input type="password" class="form-control" id=registerPassword" placeholder="Password" value="{{ registerPassword }}">-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<small id="passwordHelp" class="form-text text-muted">Password Requirements popover here</small>-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<input type="text" class="form-control" id="registerFirstName" placeholder="First Name" value="{{ registerFirstName }}">-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<input type="text" class="form-control" id="registerLasttName" placeholder="Last Name" value="{{ registerLastName }}">-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<input type="text" class="form-control" id="registerTitle" placeholder="Title" value="{{ registerTitle }}">-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<input type="text" class="form-control" id="registerGroup" placeholder="Group" value="{{ registerGroup }}">-->
-            <!--</div>-->
-            <!--<div class="form-check">-->
-                <!--<input type="checkbox" class="form-check-input" id="loginCheck" value="{{ loginCheck }}">-->
-                <!--<label class="form-check-label" for="loginCheck">Log Me In</label>-->
-            <!--</div>-->
-            <button type="submit" class="btn btn-outline-primary">Register</button>
-          </form>
+        <form action="/register/" method="post">
+          {% csrf_token %}
+          {% for field in userForm %}
+          <div class="form-group">
+            {{ field.errors }}
+            {{ field }}
+            {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-outline-primary">Register</button>
+        </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
