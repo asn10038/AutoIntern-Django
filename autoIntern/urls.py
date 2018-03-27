@@ -10,5 +10,8 @@ urlpatterns = [
     url(r'userLogout/', views.userLogout, name='logout'),
     url(r'upload/',views.upload, name='upload'),
     url(r'viewDocument', views.viewDocument, name='viewDocument'),
-    url(r'exportTags/', views.exportTags, name='exportTags')
+    url(r'exportTags/', views.exportTags, name='exportTags'),
+    url(r'changePassword/', auth_views.PasswordChangeView.as_view(
+        template_name='registration/passwordChangeForm.html',
+        success_url='/',), name='changePassword')
 ]
