@@ -1,27 +1,28 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 
 
-class User(models.Model):
-    email = models.EmailField(max_length=255, primary_key=True)
-    password = models.CharField(max_length=255)
-    firstName = models.CharField(max_length=255)
-    lastName = models.CharField(max_length=255)
-    displayName = models.CharField(max_length=255)
-    group = models.CharField(max_length=255)
-    title = models.CharField(max_length=255)
-    
-    def getUserFromEmail(self, email):
-        return User.objects.get(email=email)
+#class User(models.Model):
+#    email = models.EmailField(max_length=255, primary_key=True)
+#    password = models.CharField(max_length=255)
+#    firstName = models.CharField(max_length=255)
+#    lastName = models.CharField(max_length=255)
+#    displayName = models.CharField(max_length=255)
+#    group = models.CharField(max_length=255)
+#    title = models.CharField(max_length=255)
+#
+#    def getUserFromEmail(self, email):
+#        return User.objects.get(email=email)
 
 class Document(models.Model):
     doc_id = models.CharField(max_length=255, primary_key=True)
     company = models.CharField(max_length=255)
     doc_type = models.CharField(max_length=255)
     doc_date = models.CharField(max_length=255)
-    upload_id = models.ForeignKey(User,on_delete=models.CASCADE)
+    upload_id = models.ForeignKey(User, on_delete=models.CASCADE)
     upload_datetime = models.DateTimeField(auto_now_add = True, editable=True)
     file = models.FileField(upload_to= 'document_folder')
 

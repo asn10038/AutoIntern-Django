@@ -1,30 +1,21 @@
 {% extends "autoIntern/base.html" %}
 {% block content %}
-{% if user is null %}
-    <!-- Generic Homepage for not logged in User -->
-    <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
-      <div class="col-md-5 p-lg-5 mx-auto my-5">
-        <h1 class="display-4 font-weight-normal">Auto Intern</h1>
-        <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
-        <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
-      </div>
-      <div class="product-device box-shadow d-none d-md-block"></div>
-      <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
-    </div>
+{% if user.is_authenticated %}
+{% if file is null %}
 {% else %}
-    <!-- what the user sees if they are logged in -->
-    <!-- Probably will be the filesystem or cases or something like that -->
-
-    <!-- For now going to show an upload button that allows to upload local Files -->
-    <!-- as well as scrape a url for the content and add it to the file system -->
-    {% if file is null %}
-    {% else %}
-    <!--<iframe srcdoc={{file}}> </iframe> -->
-    {{ file | safe }}
-    {% endif %}
-
-
-
-
+<!-- Authenticated and there is a file -->
+{{ file | safe }}
+{% endif %}
+{% else %}
+<!-- Generic Homepage for not logged in User -->
+<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
+  <div class="col-md-5 p-lg-5 mx-auto my-5">
+    <h1 class="display-4 font-weight-normal">Auto Intern</h1>
+    <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
+    <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
+  </div>
+  <div class="product-device box-shadow d-none d-md-block"></div>
+  <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
+</div>
 {% endif %}
 {% endblock %}
