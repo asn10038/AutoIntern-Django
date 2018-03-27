@@ -27,12 +27,12 @@
         <a class="nav-link disabled" href="#">Cases</a>
       </li>
     </ul>
-    <!-- if user is not logged in -->
     {% if user.is_authenticated %}
     <!-- TODO Put a user icon here -->
     <h3><a class="nav-link"> Hello, {{ user.first_name }} </a></h3>
     <form action="/userLogout/" method="post">
       {% csrf_token %}
+      <p><a href="{% url 'changePassword' %}">Change password</a></p>
       <button class="btn btn-outline-info my-2 my-sm-0" type="submit">logout</button>
     </form>
     {% else %}
