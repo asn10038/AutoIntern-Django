@@ -14,7 +14,7 @@ import csv
 def index(request):
     # Check if user is logged in
     if request.user.is_authenticated:
-        context = {'doc_ids': get_doc_ids()}
+        context = {'doc_ids': get_doc_ids() , 'case_ids': get_case_ids()}
     else:
         context = {'userForm': UserForm()}
 
@@ -66,6 +66,17 @@ def get_doc_ids():
         doc_ids.append(document.doc_id)
 
     return doc_ids
+
+def get_case_ids():
+    perms = models.Permissions.objects.all().filter(user=request.user)
+
+    case_ids = []
+
+    for perm in perms:
+
+        case_ids.append(perm.case_id)
+
+    return case_ids
 
 
 @login_required(redirect_field_name='', login_url='/')

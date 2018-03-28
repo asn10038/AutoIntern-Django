@@ -33,9 +33,12 @@ class Document(models.Model):
 
 
 class Case(models.Model):
-    case_id = models.CharField(max_length=255, primary_key=True)
+    case_id = models.AutoField( primary_key=True)
+    case_name = models.CharField(max_length=255, default= 'Base Case')
     create_datetime = models.DateTimeField(auto_now_add=True)
     documents = models.ManyToManyField(Document)
+
+
 
 
 class Data(models.Model):
@@ -51,7 +54,7 @@ class Data(models.Model):
     current = models.NullBooleanField(blank=True, null=True)
 
 class Permissions(models.Model):
-    user_type_choice = (('manager'),('drone'))
+    user_type_choice = (('manager', 'has manager permissions'),('base', 'has base permissions'))
 
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
