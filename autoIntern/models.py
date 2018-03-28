@@ -4,7 +4,6 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 
-
 class Document(models.Model):
     doc_id = models.CharField(max_length=255, primary_key=True)
     company = models.CharField(max_length=255)
@@ -36,6 +35,7 @@ class Case(models.Model):
     case_id = models.CharField(max_length=255, primary_key=True)
     create_datetime = models.DateTimeField(auto_now_add=True)
     documents = models.ManyToManyField(Document)
+    user_permissions = models.ManyToManyField(User)
 
 
 class Data(models.Model):
@@ -49,10 +49,3 @@ class Data(models.Model):
     line = models.CharField(max_length=255)
     index = models.CharField(max_length=255)
     current = models.NullBooleanField(blank=True, null=True)
-
-class Permissions(models.Model):
-    user_type_choice = (('manager'),('drone'))
-
-    case = models.ForeignKey(Case, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    user_type = models.CharField(max_length= 50 , choices = user_type_choice)
