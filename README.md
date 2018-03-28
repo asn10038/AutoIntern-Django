@@ -33,7 +33,7 @@ Here we are making a virtual enviornment to make sure the enviornment we are cod
 This connects your local machine to the dev database for local testing. You can elect to not test locally and push to the "dev" branch whenever you want circleci to run tests. And can go to the dev website (after circleci has automatically deployed your push) to interact with/view it.  However, to run the code locally you will have to first start the database proxy.
 1. Follow the instructions here <a href='https://cloud.google.com/sdk/downloads#interactive'>Google Cloud SDK</a> for downloading the interactive installer. You will have to do this once.
 2. Type "gcloud init" in your terminal, you should have to follow some steps such as login in to your email, and then should be allowed to select a default project and should have the options of our dev, uat, and prod projects. Select the dev project.
-2. To start the Proxy, go to /AutoIntern-Django and type "./cloud_sql_proxy_unix -instances="autointern-dev:us-east1:autointern-dev"=tcp:5432" if on a unix machine (mac) and "./cloud_sql_proxy_linux -instances="autointern-dev:us-east1:autointern-dev"=tcp:5432" if on a unix machine. Leave this running to test the code locally.
+2. To start the Proxy, go to /AutoIntern-Django and type "./cloud_sql_proxy_unix -instances="autointern-dev:us-east1:autointern-dev"=tcp:5432" if on a unix machine (mac) and "./cloud_sql_proxy_linux -instances="autointern-dev:us-east1:autointern-dev"=tcp:5432" if on a linux machine. Leave this running to test the code locally.
 
 ### Start the Application
 Here we will run the application and allow you to connect to it locally.

@@ -1,17 +1,7 @@
 {% extends "autoIntern/base.html" %}
 {% block content %}
-{% if user is null %}
-    <!-- Generic Homepage for not logged in User -->
-    <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
-      <div class="col-md-5 p-lg-5 mx-auto my-5">
-        <h1 class="display-4 font-weight-normal">Auto Intern</h1>
-        <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
-        <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
-      </div>
-      <div class="product-device box-shadow d-none d-md-block"></div>
-      <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
-    </div>
-{% else %}
+
+{% if user.is_authenticated %}
 <!-- what the user sees if they are logged in -->
 <!-- Probably will be the filesystem or cases or something like that -->
 
@@ -26,12 +16,13 @@
     </tr>
   </thead>
   <tbody>
+    {% for doc_id in doc_ids %}
     <tr>
-      <td><a href="/viewDocument/"> Document1</a></td>
+      <td><a href="/viewDocument?id={{ doc_id }}"> {{ doc_id }}</a></td>
     </tr>
+    {% endfor %}
   </tbody>
 </table>
-
 
 <!-- Upload modal -->
 <div class="modal" tabindex="-1" role="alertdialog" id="uploadModal">
@@ -48,7 +39,7 @@
             {% csrf_token %}
             <!-- Maybe Turn into DocumentModelForm at some point -->
             <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile">
-             <button type="submit" class="btn btn-outline-primary">Upload</button>
+            <button type="submit" class="btn btn-outline-primary">Upload</button>
           </form>
       </div>
       <div class="modal-footer">
@@ -57,7 +48,16 @@
     </div>
   </div>
 </div>
-
-
+{% else %}
+<!-- Generic Homepage for not logged in User -->
+<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
+  <div class="col-md-5 p-lg-5 mx-auto my-5">
+    <h1 class="display-4 font-weight-normal">Auto Intern</h1>
+    <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
+    <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
+  </div>
+  <div class="product-device box-shadow d-none d-md-block"></div>
+  <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
+</div>
 {% endif %}
 {% endblock %}
