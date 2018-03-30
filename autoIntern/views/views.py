@@ -14,7 +14,7 @@ import csv
 def index(request):
     # Check if user is logged in
     if request.user.is_authenticated:
-        context = {'doc_ids': get_doc_ids() , 'case_ids': get_case_ids()}
+        context = {'doc_ids': get_doc_ids()} # , 'case_ids': get_case_ids()}
     else:
         context = {'userForm': UserForm()}
 
@@ -169,3 +169,17 @@ def exportTags(request):
             return HttpResponseRedirect('/')
     else:
         return HttpResponseRedirect('/')
+
+
+# TODO: Handle repeated case names (add number if repeat)
+@login_required(redirect_field_name='', login_url='/')
+def createCase(request):
+    currUser = User.objects.get(username=request.user)
+
+    name = request.POST['caseName']
+    print (name)
+    new_case = models.Case(case_name=name)
+    new_case.save()
+    print (str(new_case.case_id))
+
+    return (render(request, 'autoIntern/homePage.html'))
