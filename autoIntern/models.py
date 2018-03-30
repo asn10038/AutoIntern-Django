@@ -4,7 +4,6 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 
-
 class Document(models.Model):
     doc_id = models.CharField(max_length=255, primary_key=True)
     company = models.CharField(max_length=255)
@@ -37,6 +36,7 @@ class Case(models.Model):
     case_name = models.CharField(max_length=255, default= 'Base Case')
     create_datetime = models.DateTimeField(auto_now_add=True)
     documents = models.ManyToManyField(Document) #null = true, through = Data
+
 
 
 class Data(models.Model):
