@@ -17,9 +17,9 @@
     </tr>
   </thead>
   <tbody>
-    {% for case_id in case_ids %}
+    {% for case_id,case_name in zipped_data %}
     <tr>
-      <td><a href="/viewCase?id={{ case_id }}"> {{ case_id }}</a></td>
+      <td><a href="/viewCase?id={{ case_id }}"> {{ case_name }}</a></td>
     </tr>
     {% endfor %}
   </tbody>
@@ -79,6 +79,9 @@
           <input type="text" name="caseName">
           <button type="submit" class="btn btn-outline-primary">Create</button>
         </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
