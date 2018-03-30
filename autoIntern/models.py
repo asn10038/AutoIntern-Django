@@ -38,6 +38,7 @@ class Case(models.Model):
     documents = models.ManyToManyField(Document)
     user_permissions = models.ManyToManyField(User)
 
+
 class Data(models.Model):
     data_id = models.CharField(max_length=255, primary_key=True)
     creator_id = models.ForeignKey(User, on_delete=models.CASCADE)
