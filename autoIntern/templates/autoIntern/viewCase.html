@@ -8,23 +8,8 @@
 <!-- For now going to show an upload button that allows to upload local Files -->
 <!-- as well as scrape a url for the content and add it to the file system -->
 <button class="btn btn-outline-primary" data-toggle="modal" type="button" data-target="#uploadModal">Upload</button>
-<button class="btn btn-outline-primary" data-toggle="modal" type="button" data-target="#caseModal">Create Case</button>
 
-<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">Cases</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for case_id,case_name in zipped_data %}
-    <tr>
-      <td><a href="/viewCase?id={{ case_id }}"> {{ case_name }}</a></td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-
+<h1> case: {{case_name}} </h1>
 
 <table class="table">
   <thead>
@@ -33,9 +18,9 @@
     </tr>
   </thead>
   <tbody>
-    {% for doc_id in doc_ids %}
+    {% for document in documents %}
     <tr>
-      <td><a href="/viewDocument?id={{ doc_id }}"> {{ doc_id }}</a></td>
+      <td><a href="/viewDocument?id={{ document }}"> {{ document }}</a></td>
     </tr>
     {% endfor %}
   </tbody>
@@ -66,26 +51,11 @@
   </div>
 </div>
 
-<!-- Create Case Modal -->
-<div class="modal" tabindex="-1" role="alertdialog" id="caseModal">
-  <div class="modal-dialog" role="alertdialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Enter New Case Name</h5>
-      </div>
-      <div class="modal-body">
-        <form action="/createCase/" method="post">
-          {% csrf_token %}
-          <input type="text" name="caseName">
-          <button type="submit" class="btn btn-outline-primary">Create</button>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+
+
+
+
+
 {% else %}
 <!-- Generic Homepage for not logged in User -->
 <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">

@@ -14,7 +14,7 @@ import csv
 def index(request):
     # Check if user is logged in
     if request.user.is_authenticated:
-        context = {'doc_ids': get_doc_ids()} # , 'case_ids': get_case_ids()}
+        context = {'doc_ids': get_doc_ids(), 'zipped_data' : get_case_ids(request)}
     else:
         context = {'userForm': UserForm()}
 
@@ -67,16 +67,29 @@ def get_doc_ids():
 
     return doc_ids
 
-def get_case_ids():
-    perms = models.Permissions.objects.all().filter(user=request.user)
+def get_case_ids(request):
+    userperms = models.Case.objects.all().filter(user_permissions = request.user)
 
     case_ids = []
+    case_names = []
 
-    for perm in perms:
+    for perm in userperms:
 
         case_ids.append(perm.case_id)
+        case_names.append(perm.case_name)
 
-    return case_ids
+    return zip(case_ids, case_names)
+
+
+# TODO: Make sure this is actually pulling documents (no docs in cases yet)
+def get_docs_in_case(case_id):
+    case = models.Case.objects.get(case_id =case_id )
+    try:
+        docs = case.documents
+    except:
+        docs = 'no docs in case'
+    return docs
+
 
 
 @login_required(redirect_field_name='', login_url='/')
@@ -94,6 +107,22 @@ def viewDocument(request):
 
 
 @login_required(redirect_field_name='', login_url='/')
+def viewCase(request):
+    if request.method == 'GET':
+        try:
+            cur_case_id = request.GET['id']
+            case = models.Case.objects.get(case_id = cur_case_id)
+            case_name = case.case_name
+            documents = get_docs_in_case(cur_case_id)
+            context = {'documents' : documents, 'case_name': case_name }
+
+            return render(request, 'autoIntern/viewCase.html', context)
+        except:
+            context = { 'case_name': case_name}
+            return render(request, 'autoIntern/viewCase.html', context )
+
+
+@login_required(redirect_field_name='', login_url='/')
 def upload(request):
     '''Handles Local file uploads'''
     if request.method == 'POST':
@@ -105,7 +134,7 @@ def upload(request):
         new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
         new_document.save()
 
-        context = {'doc_ids': get_doc_ids()}
+        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
 
         return render(request, 'autoIntern/homePage.html', context)
     else:
@@ -177,9 +206,16 @@ def createCase(request):
     currUser = User.objects.get(username=request.user)
 
     name = request.POST['caseName']
-    print (name)
-    new_case = models.Case(case_name=name)
+    new_case = models.Case(case_name=name )
     new_case.save()
-    print (str(new_case.case_id))
+    new_case.user_permissions.add(currUser)
 
-    return (render(request, 'autoIntern/homePage.html'))
+    new_perm = models.Permissions(user = currUser, case = new_case, user_type = 2)
+    new_perm.save()
+
+    if request.user.is_authenticated:
+        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
+    else:
+        context = {'userForm': UserForm()}
+
+    return render(request, 'autoIntern/homePage.html', context)
