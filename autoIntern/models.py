@@ -33,12 +33,10 @@ class Document(models.Model):
 
 
 class Case(models.Model):
-    case_id = models.AutoField( primary_key=True)
+    case_id = models.AutoField(primary_key=True)
     case_name = models.CharField(max_length=255, default= 'Base Case')
     create_datetime = models.DateTimeField(auto_now_add=True)
-    documents = models.ManyToManyField(Document)
-
-
+    documents = models.ManyToManyField(Document) #null = true, through = Data
 
 
 class Data(models.Model):

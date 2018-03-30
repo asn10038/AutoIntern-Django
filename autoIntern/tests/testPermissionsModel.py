@@ -1,9 +1,9 @@
-###################
+#########################
 
-# testing the Data Model
+# testing the permissions model
 
 
-class DataModelTest(TestCase):
+class PermissionsModelTest(TestCase):
     def setUp(self):
         form = UserForm({
             'username': 'Test',
