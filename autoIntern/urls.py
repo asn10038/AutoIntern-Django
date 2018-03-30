@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'userLogout/', views.userLogout, name='logout'),
     url(r'upload/',views.upload, name='upload'),
     url(r'viewDocument', views.viewDocument, name='viewDocument'),
+    url(r'viewCase', views.viewCase, name='viewCase'),
     url(r'exportTags/', views.exportTags, name='exportTags'),
     url(r'createCase/', views.createCase, name='createCase'),
     url(r'changePassword/', auth_views.PasswordChangeView.as_view(

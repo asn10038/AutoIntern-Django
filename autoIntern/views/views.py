@@ -81,6 +81,17 @@ def get_case_ids(request):
     return zip(case_ids, case_names)
 
 
+# TODO: Make sure this is actually pulling documents (no docs in cases yet)
+def get_docs_in_case(case_id):
+    case = models.Case.objects.get(case_id =case_id )
+    try:
+        docs = case.documents
+    except:
+        docs = 'no docs in case'
+    return docs
+
+
+
 @login_required(redirect_field_name='', login_url='/')
 def viewDocument(request):
     if request.method == 'GET':
@@ -96,6 +107,22 @@ def viewDocument(request):
 
 
 @login_required(redirect_field_name='', login_url='/')
+def viewCase(request):
+    if request.method == 'GET':
+        try:
+            cur_case_id = request.GET['id']
+            case = models.Case.objects.get(case_id = cur_case_id)
+            case_name = case.case_name
+            documents = get_docs_in_case(cur_case_id)
+            context = {'documents' : documents, 'case_name': case_name }
+
+            return render(request, 'autoIntern/viewCase.html', context)
+        except:
+            context = { 'case_name': case_name}
+            return render(request, 'autoIntern/viewCase.html', context )
+
+
+@login_required(redirect_field_name='', login_url='/')
 def upload(request):
     '''Handles Local file uploads'''
     if request.method == 'POST':
@@ -107,10 +134,7 @@ def upload(request):
         new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
         new_document.save()
 
-        if request.user.is_authenticated:
-            context = {'doc_ids': get_doc_ids(), 'case_ids': get_case_ids(request)}
-        else:
-            context = {'userForm': UserForm()}
+        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
 
         return render(request, 'autoIntern/homePage.html', context)
     else:
@@ -190,7 +214,7 @@ def createCase(request):
     new_perm.save()
 
     if request.user.is_authenticated:
-        context = {'doc_ids': get_doc_ids(), 'case_ids': get_case_ids(request)}
+        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
     else:
         context = {'userForm': UserForm()}
 
