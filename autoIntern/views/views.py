@@ -82,14 +82,15 @@ def get_case_ids(request):
     return zip(case_ids, case_names)
 
 
-# TODO: Make sure this is actually pulling documents (no docs in cases yet)
+# TODO: Move
 def get_docs_in_case(case_id):
     case = models.Case.objects.get(case_id =case_id)
-    try:
-        docs = case.documents
-    except:
-        docs = 'no docs in case'
-    return docs
+    doc_ids = []
+
+    for doc in case.documents.all():
+        doc_ids.append(doc.doc_id)
+
+    return doc_ids
 
 
 
@@ -117,12 +118,11 @@ def viewCase(request):
             documents = get_docs_in_case(cur_case_id)
             context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
 
-            print(context)
+            return render(request, 'autoIntern/viewCase.html', context)
 
-            return render(request, 'autoIntern/viewCase.html', context)
         except:
-            context = {'case_name': case_name}
-            return render(request, 'autoIntern/viewCase.html', context)
+            print ("EXCEPT VIEWCASE")
+            return HttpResponseRedirect('/')
 
 
 @login_required(redirect_field_name='', login_url='/')
@@ -138,9 +138,8 @@ def upload(request):
         new_document.save()
 
         if 'case_id' in request.POST:
-            print("case_id in post")
-            print(request.POST['case_id'])
-            print('_______')
+            case = models.Case.objects.get(case_id=request.POST['case_id'])
+            case.documents.add(new_document)
 
         context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
 
