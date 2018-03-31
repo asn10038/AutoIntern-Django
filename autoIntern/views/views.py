@@ -14,7 +14,7 @@ import csv
 def index(request):
     # Check if user is logged in
     if request.user.is_authenticated:
-        context = {'doc_ids': get_doc_ids()}
+        context = {'doc_ids': get_doc_ids(), 'zipped_data' : get_case_ids(request)}
     else:
         context = {'userForm': UserForm()}
 
@@ -67,6 +67,32 @@ def get_doc_ids():
 
     return doc_ids
 
+# TODO: Move
+def get_case_ids(request):
+    userperms = models.Case.objects.all().filter(user_permissions=request.user)
+
+    case_ids = []
+    case_names = []
+
+    for perm in userperms:
+
+        case_ids.append(perm.case_id)
+        case_names.append(perm.case_name)
+
+    return zip(case_ids, case_names)
+
+
+# TODO: Move
+def get_docs_in_case(case_id):
+    case = models.Case.objects.get(case_id =case_id)
+    doc_ids = []
+
+    for doc in case.documents.all():
+        doc_ids.append(doc.doc_id)
+
+    return doc_ids
+
+
 
 @login_required(redirect_field_name='', login_url='/')
 def viewDocument(request):
@@ -75,11 +101,28 @@ def viewDocument(request):
             cur_doc_id = request.GET['id']
             document = models.Document.objects.get(doc_id=cur_doc_id)
             file = document.file.read().decode('utf-8')
-            context = {"file": file}
+            context = {'file': file}
             return render(request, 'autoIntern/viewDocument.html', context)
         except:
             context = {'doc_ids': get_doc_ids()}
             return render(request, 'autoIntern/viewDocument.html', context)
+
+
+@login_required(redirect_field_name='', login_url='/')
+def viewCase(request):
+    if request.method == 'GET':
+        try:
+            cur_case_id = request.GET['id']
+            case = models.Case.objects.get(case_id=cur_case_id)
+            case_name = case.case_name
+            documents = get_docs_in_case(cur_case_id)
+            context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
+
+            return render(request, 'autoIntern/viewCase.html', context)
+
+        except:
+            print ("EXCEPT VIEWCASE")
+            return HttpResponseRedirect('/')
 
 
 @login_required(redirect_field_name='', login_url='/')
@@ -94,14 +137,17 @@ def upload(request):
         new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
         new_document.save()
 
-        context = {'doc_ids': get_doc_ids()}
+        if 'case_id' in request.POST:
+            case = models.Case.objects.get(case_id=request.POST['case_id'])
+            case.documents.add(new_document)
+
+        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
 
         return render(request, 'autoIntern/homePage.html', context)
     else:
         return HttpResponseRedirect('/')
 
 
-# TODO: This should be simplified
 @login_required(redirect_field_name='', login_url='/')
 def exportTags(request):
     ''' Exports tags associated with document'''
@@ -158,3 +204,24 @@ def exportTags(request):
             return HttpResponseRedirect('/')
     else:
         return HttpResponseRedirect('/')
+
+
+# TODO: Handle repeated case names (add number if repeat)
+@login_required(redirect_field_name='', login_url='/')
+def createCase(request):
+    currUser = User.objects.get(username=request.user)
+
+    name = request.POST['caseName']
+    new_case = models.Case(case_name=name)
+    new_case.save()
+    new_case.user_permissions.add(currUser)
+
+    new_perm = models.Permissions(user=currUser, case=new_case, user_type=models.Permissions.MANAGER_USER)
+    new_perm.save()
+
+    if request.user.is_authenticated:
+        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
+    else:
+        context = {'userForm': UserForm()}
+
+    return render(request, 'autoIntern/homePage.html', context)

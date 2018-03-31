@@ -1,9 +1,11 @@
-###################
 
-# testing the Data Model
+######################
+
+# testing the Permissions model
 
 
-class DataModelTest(TestCase):
+
+class CaseModelTest(TestCase):
     def setUp(self):
         form = UserForm({
             'username': 'Test',
@@ -23,3 +25,5 @@ class DataModelTest(TestCase):
                                                    ContentFile(content)))
 
         doc.save()
+
+
