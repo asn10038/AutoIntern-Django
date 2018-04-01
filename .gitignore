@@ -102,4 +102,4 @@ autointernvenv/
 .mypy_cache/
 
 # IDE workspace data
-.idea/workspace.xml
+.idea/

@@ -14,36 +14,45 @@
 
 <!-- navbar stuff -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="#">AutoIntern</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link disabled" href="#">Admin Page</a> <!-- This needs to link to a new case view -->
-      </li>
-    </ul>
-    {% if user.is_authenticated %}
-    <!-- TODO Put a user icon here -->
-    <h3><a class="nav-link"> Hello, {{ user.first_name }} </a></h3>
-    <form action="/userLogout/" method="post">
-      {% csrf_token %}
-      <p><a href="{% url 'changePassword' %}">Change password</a></p>
-      <button class="btn btn-outline-info my-2 my-sm-0" type="submit">logout</button>
-    </form>
-    {% else %}
-    <form action="/userLogin/" method="post" class="form-inline my-2 my-lg-0">
-      {% csrf_token %}
-      <input class="form-control mr-sm-2" type="text" placeholder="Username" aria-label="username" name="username">
-      <input class="form-control mr-sm-2" type="password" placeholder="Password" aria-label="password" name="password">
-      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Login</button>
-    </form>
-    <button class="btn btn-outline-info my-2 my-sm-0" data-toggle="modal" type="button" data-target="#registerModal">Register</button>
-    {% endif %}
+  <div class="container">
+    <a class="navbar-brand" href="/">AutoIntern</a>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled" href="#">Admin Page</a> <!-- This needs to link to a new case view -->
+        </li>
+      </ul>
+      {% if user.is_authenticated %}
+      <!-- TODO Put a user icon here -->
+      <ul class="navbar-nav justify-content-end">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Hello, {{ user.first_name }}</a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="{% url 'changePassword' %}">Change Password</a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <form action="/userLogout/" method="post">
+            {% csrf_token %}
+            <button class="btn btn-outline-info my-2 my-sm-0" type="submit">logout</button>
+          </form>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <form action="/userLogin/" method="post" class="form-inline my-2 my-lg-0">
+            {% csrf_token %}
+            <input class="form-control mr-sm-2" type="text" placeholder="Username" aria-label="username" name="username">
+            <input class="form-control mr-sm-2" type="password" placeholder="Password" aria-label="password" name="password">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Login</button>
+          </form>
+          <button class="btn btn-outline-info my-2 my-sm-0" data-toggle="modal" type="button" data-target="#registerModal">Register</button>
+          {% endif %}
+        </li>
+      </ul>
+    </div>
   </div>
 </nav>
 

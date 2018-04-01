@@ -1,0 +1,25 @@
+.mobileDropdown{
+  background:#333333;
+  border:0;
+  border-radius:6px;
+  border-top:3px solid #666666;
+  cursor:pointer;
+  padding:6px 5px 8px;
+
+  &:hover{
+    background:#3d3d3d;
+  }
+
+  &:active{
+    background:#111111;
+  }
+
+  span{
+    background:#ffffff;
+    border-radius:10px;
+    display:block;
+    height:4px;
+    margin:0 0 5px;
+    width:30px;
+  }
+}
