@@ -7,11 +7,10 @@
 
 <!-- For now going to show an upload button that allows to upload local Files -->
 <!-- as well as scrape a url for the content and add it to the file system -->
-<button class="btn btn-outline-primary" data-toggle="modal" type="button" data-target="#uploadModal">Upload</button>
+<div class="container">
+<button class="btn btn-primary btn-lg mx-5 my-2 btn-block" data-toggle="modal" type="button" data-target="#uploadModal">Upload to {{case_name}} </button>
 
-<h1> case: {{case_name}} </h1>
-
-<table class="table">
+<table class="m-5 table">
   <thead>
     <tr>
       <th scope="col">Documents</th>
@@ -51,7 +50,7 @@
     </div>
   </div>
 </div>
-
+</div>
 
 {% else %}
 <!-- Generic Homepage for not logged in User -->
