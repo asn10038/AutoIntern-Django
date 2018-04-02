@@ -33,7 +33,7 @@ def userLogin(request):
         # User successfully authenticated
         if user is not None:
             login(request, user)
-            context = {'doc_ids': get_doc_ids()}
+            context = {'doc_ids': get_doc_ids(), 'zipped_data' : get_case_ids(request)}
         return render(request, 'autoIntern/homePage.html', context)
 
 
