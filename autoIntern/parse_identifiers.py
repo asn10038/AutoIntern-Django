@@ -3,6 +3,7 @@ from django.db import models
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from autoIntern.models import Document
+from django.core.exceptions import ObjectDoesNotExist
 
 
 
@@ -26,7 +27,18 @@ def GetDocumentByHeader( doc_file, contr_user):
             company = company.replace('/','')
 
     doc_id = company+'.'+ doc_type + '.' + doc_date + '.txt'
-    new_doc = Document(company= company , doc_type= doc_type, doc_date= doc_date,
+    if DNE_Doc_or_Fail(doc_id):
+        new_doc = Document(company= company , doc_type= doc_type, doc_date= doc_date,
                                 doc_id =  doc_id, file = default_storage.save('static/document_folder/{0}'.format(doc_id),
                                 ContentFile(content)), upload_id = contr_user)
-    return(new_doc)
+        return(new_doc)
+    else:
+        return(False, doc_id)
+
+
+def DNE_Doc_or_Fail(doc_id):
+    try:
+        doc = Document.objects.get(doc_id= doc_id)
+        return(False)
+    except ObjectDoesNotExist:
+        return(True)
