@@ -67,8 +67,9 @@ def get_doc_ids():
 
     return doc_ids
 
+# TODO: Move
 def get_case_ids(request):
-    userperms = models.Case.objects.all().filter(user_permissions = request.user)
+    userperms = models.Case.objects.all().filter(user_permissions=request.user)
 
     case_ids = []
     case_names = []
@@ -81,14 +82,15 @@ def get_case_ids(request):
     return zip(case_ids, case_names)
 
 
-# TODO: Make sure this is actually pulling documents (no docs in cases yet)
+# TODO: Move
 def get_docs_in_case(case_id):
-    case = models.Case.objects.get(case_id =case_id )
-    try:
-        docs = case.documents
-    except:
-        docs = 'no docs in case'
-    return docs
+    case = models.Case.objects.get(case_id =case_id)
+    doc_ids = []
+
+    for doc in case.documents.all():
+        doc_ids.append(doc.doc_id)
+
+    return doc_ids
 
 
 
@@ -99,7 +101,7 @@ def viewDocument(request):
             cur_doc_id = request.GET['id']
             document = models.Document.objects.get(doc_id=cur_doc_id)
             file = document.file.read().decode('utf-8')
-            context = {"file": file}
+            context = {'file': file}
             return render(request, 'autoIntern/viewDocument.html', context)
         except:
             context = {'doc_ids': get_doc_ids()}
@@ -111,15 +113,16 @@ def viewCase(request):
     if request.method == 'GET':
         try:
             cur_case_id = request.GET['id']
-            case = models.Case.objects.get(case_id = cur_case_id)
+            case = models.Case.objects.get(case_id=cur_case_id)
             case_name = case.case_name
             documents = get_docs_in_case(cur_case_id)
-            context = {'documents' : documents, 'case_name': case_name }
+            context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
 
             return render(request, 'autoIntern/viewCase.html', context)
+
         except:
-            context = { 'case_name': case_name}
-            return render(request, 'autoIntern/viewCase.html', context )
+            print ("EXCEPT VIEWCASE")
+            return HttpResponseRedirect('/')
 
 
 @login_required(redirect_field_name='', login_url='/')
@@ -134,6 +137,10 @@ def upload(request):
         new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
         new_document.save()
 
+        if 'case_id' in request.POST:
+            case = models.Case.objects.get(case_id=request.POST['case_id'])
+            case.documents.add(new_document)
+
         context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
 
         return render(request, 'autoIntern/homePage.html', context)
@@ -141,7 +148,6 @@ def upload(request):
         return HttpResponseRedirect('/')
 
 
-# TODO: This should be simplified
 @login_required(redirect_field_name='', login_url='/')
 def exportTags(request):
     ''' Exports tags associated with document'''
@@ -206,11 +212,11 @@ def createCase(request):
     currUser = User.objects.get(username=request.user)
 
     name = request.POST['caseName']
-    new_case = models.Case(case_name=name )
+    new_case = models.Case(case_name=name)
     new_case.save()
     new_case.user_permissions.add(currUser)
 
-    new_perm = models.Permissions(user = currUser, case = new_case, user_type = 2)
+    new_perm = models.Permissions(user=currUser, case=new_case, user_type=models.Permissions.MANAGER_USER)
     new_perm.save()
 
     if request.user.is_authenticated:
