@@ -3,8 +3,26 @@
 {% if user.is_authenticated %}
 {% if file is null %}
 {% else %}
-<button class="btn btn-outline-primary" data-toggle="modal" type="button" data-target="#exportTags">Export Tags</button>
+<div class="container">
+  <button class="btn btn-primary btn-lg mx-5 my-2 btn-block" data-toggle="modal" type="button" data-target="#exportTags">Export Tags</button>
 
+  <!-- Authenticated and there is a file -->
+  <div class="m-5">
+    {{ file | safe }}
+  </div>
+  {% endif %}
+  {% else %}
+  <!-- Generic Homepage for not logged in User -->
+  <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
+    <div class="col-md-5 p-lg-5 mx-auto my-5">
+      <h1 class="display-4 font-weight-normal">Auto Intern</h1>
+      <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
+      <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
+    </div>
+    <div class="product-device box-shadow d-none d-md-block"></div>
+    <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
+  </div>
+</div>
 <!-- Export modal -->
 <div class="modal" tabindex="-1" role="alertdialog" id="exportTags">
   <div class="modal-dialog" role="alertdialog">
@@ -40,21 +58,6 @@
       </div>
     </div>
   </div>
-</div>
-
-<!-- Authenticated and there is a file -->
-{{ file | safe }}
-{% endif %}
-{% else %}
-<!-- Generic Homepage for not logged in User -->
-<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
-  <div class="col-md-5 p-lg-5 mx-auto my-5">
-    <h1 class="display-4 font-weight-normal">Auto Intern</h1>
-    <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
-    <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
-  </div>
-  <div class="product-device box-shadow d-none d-md-block"></div>
-  <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
 </div>
 {% endif %}
 {% endblock %}

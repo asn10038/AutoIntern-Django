@@ -32,7 +32,8 @@ class Document(models.Model):
 
 
 class Case(models.Model):
-    case_id = models.CharField(max_length=255, primary_key=True)
+    case_id = models.AutoField(primary_key=True)
+    case_name = models.CharField(max_length=255, default= 'Base Case')
     create_datetime = models.DateTimeField(auto_now_add=True)
     documents = models.ManyToManyField(Document)
     user_permissions = models.ManyToManyField(User)
@@ -49,3 +50,15 @@ class Data(models.Model):
     line = models.CharField(max_length=255)
     index = models.CharField(max_length=255)
     current = models.NullBooleanField(blank=True, null=True)
+
+class Permissions(models.Model):
+    BASE_USER = 1
+    MANAGER_USER = 2
+    USER_CHOICES = (
+        (BASE_USER, 'Base'),
+        (MANAGER_USER, 'Manager'),
+    )
+
+    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_type = models.IntegerField(choices=USER_CHOICES, default=BASE_USER)
