@@ -1,3 +1,5 @@
+<html>
+<head>
 {# Load the tag lib #}
 {% load bootstrap4 %}
 
@@ -12,119 +14,120 @@
 {# Load widget tweaks for front end convenience #}
 {% load widget_tweaks %}
 
+<style>
+/* Center the loader */
+#loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid blue;
+  border-right: 16px solid green;
+  border-bottom: 16px solid red;
+  border-left: 16px solid pink;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Add animation to "page content" */
+.animate-bottom {
+  position: relative;
+  -webkit-animation-name: animatebottom;
+  -webkit-animation-duration: 1s;
+  animation-name: animatebottom;
+  animation-duration: 1s
+}
+
+@-webkit-keyframes animatebottom {
+  from { bottom:-100px; opacity:0 }
+  to { bottom:0px; opacity:1 }
+}
+
+@keyframes animatebottom {
+  from{ bottom:-100px; opacity:0 }
+  to{ bottom:0; opacity:1 }
+}
+</style>
+</head>
+
+<body>
+
 <!-- navbar stuff -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">AutoIntern</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-    </button>
+  <div class="container">
+    <a class="navbar-brand" href="/">AutoIntern</a>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
-            </li>
-      <!--<li class="nav-item">-->
-        <!--<a class="nav-link" href="#">Cases</a>-->
-      <!--</li>-->
-      <!--<li class="nav-item dropdown">-->
-        <!--<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
-          <!--Dropdown-->
-        <!--</a>-->
-        <!--<div class="dropdown-menu" aria-labelledby="navbarDropdown">-->
-          <!--<a class="dropdown-item" href="#">Action</a>-->
-          <!--<a class="dropdown-item" href="#">Another action</a>-->
-          <!--<div class="dropdown-divider"></div>-->
-          <!--<a class="dropdown-item" href="#">Something else here</a>-->
-        <!--</div>-->
-      <!--</li>-->
-            <li class="nav-item">
-                <a class="nav-link disabled" href="#">Cases</a>
-            </li>
-        </ul>
-        <!-- if user is not logged in -->
-        {% if user is null %}
-            <form action="/login/" method="post" class="form-inline my-2 my-lg-0">
-                {% csrf_token %}
-                <input class="form-control mr-sm-2" type="text" placeholder="Email" aria-label="username" name="email">
-                <input class="form-control mr-sm-2" type="password" placeholder="Password" aria-label="password" name="password">
-                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Login</button>
-            </form>
-            <button class="btn btn-outline-info my-2 my-sm-0" data-toggle="modal" type="button" data-target="#registerModal">Register</button>
-        {% else %}
-        <!-- TODO Put a user icon here -->
-        <h3><a class="nav-link"> Hello, {{ user.displayName }} </a></h3>
-        <form action="/logout/" method="post">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled" href="#">Admin Page</a> <!-- This needs to link to a new case view -->
+        </li>
+      </ul>
+      <ul class="navbar-nav justify-content-end">
+      {% if user.is_authenticated %}
+      <!-- TODO Put a user icon here -->
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Hello, {{ user.first_name }}</a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="{% url 'changePassword' %}">Change Password</a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <form action="/userLogout/" method="post">
             {% csrf_token %}
             <button class="btn btn-outline-info my-2 my-sm-0" type="submit">logout</button>
-        </form>
-
-        {% endif %}
-
-    </div>
-
-</nav>
-
-<!-- Register Modal Window -->
-<div class="modal" tabindex="-1" role="alertdialog" id="registerModal">
-  <div class="modal-dialog" role="alertdialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Register</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-          <form action="/register/" method="post">
-            {% csrf_token %}
-            <!--<div class="form-group">-->
-                <!--{{ userForm.email.errors }}-->
-                <!--{{ userForm.email }}-->
-            <!--</div>-->
-            {% for field in userForm %}
-                <div class="form-group">
-                {{ field.errors }}
-                {{ field }}
-                {% if field.help_text %}
-                    <p class="help">{{ field.help_text|safe }}</p>
-                {% endif %}
-                </div>
-            {% endfor %}
-            <!--<div class="form-group">-->
-                <!--<input type="email" class="form-control" id="registerEmail" aria-describedby="emailHelp" placeholder="Enter email" value="{{ registerEmail }}">-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<input type="password" class="form-control" id=registerPassword" placeholder="Password" value="{{ registerPassword }}">-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<small id="passwordHelp" class="form-text text-muted">Password Requirements popover here</small>-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<input type="text" class="form-control" id="registerFirstName" placeholder="First Name" value="{{ registerFirstName }}">-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<input type="text" class="form-control" id="registerLasttName" placeholder="Last Name" value="{{ registerLastName }}">-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<input type="text" class="form-control" id="registerTitle" placeholder="Title" value="{{ registerTitle }}">-->
-            <!--</div>-->
-            <!--<div class="form-group">-->
-                <!--<input type="text" class="form-control" id="registerGroup" placeholder="Group" value="{{ registerGroup }}">-->
-            <!--</div>-->
-            <!--<div class="form-check">-->
-                <!--<input type="checkbox" class="form-check-input" id="loginCheck" value="{{ loginCheck }}">-->
-                <!--<label class="form-check-label" for="loginCheck">Log Me In</label>-->
-            <!--</div>-->
-            <button type="submit" class="btn btn-outline-primary">Register</button>
           </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
-      </div>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <form action="/userLogin/" method="post" class="form-inline my-2 my-lg-0">
+            {% csrf_token %}
+            <input class="form-control mr-sm-2" type="text" placeholder="Username" aria-label="username" name="username">
+            <input class="form-control mr-sm-2" type="password" placeholder="Password" aria-label="password" name="password">
+            <button class="btn btn-outline-success m-2 my-sm-0" type="submit">Login</button>
+          </form>
+        </li>
+        <li class="nav-item">
+          <button class="btn btn-outline-info my-2 my-sm-0" data-toggle="modal" type="button" data-target="#registerModal">Register</button>
+          {% endif %}
+        </li>
+      </ul>
     </div>
   </div>
-</div>
+</nav>
 
 <!-- Actual Content of the Page -->
 {% block content %}
 {% endblock %}
+<div id="loader" hidden="true"></div>
+<script>
+function showLoader() {
+    var x = document.getElementById("loader");
+    if (!x.hidden) {
+    } else {
+        x.hidden = false ;
+    }
+}
+</script>
+</body>
+</html>

@@ -1,17 +1,19 @@
-# creating test for storage of data
+# creating test for storage of documents and data in cases
 
 from autoIntern.models import Document
 from autoIntern.models import User
 from autoIntern.forms import UserForm
+from autoIntern.models import Case
 from django.test import TestCase
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.files import File
 import os
 from django.conf import settings
+from autoIntern.views.views import get_docs_in_case
 
 
-class DocumentModelTest(TestCase):
+class CaseModelTest(TestCase):
     def setUp(self):
         form = UserForm({
             'username': 'Test',
@@ -32,23 +34,21 @@ class DocumentModelTest(TestCase):
 
         doc.save()
 
+        case = Case( case_name = 'Case Test')
+        case.save()
+        doc1 = Document.objects.get(doc_id = 'APPLE_INC.10-K.20171103')
+        case.documents.add(doc1)
+        case.user_permissions.add(user)
 
-    def test_file(self):
-        doc = Document.objects.get(doc_id= 'APPLE_INC.10-K.20171103')
-        content = doc.file.read()
-        self.assertEquals(content, b'10-K Report')
+    def test_doc_in_case(self):
+        case = Case.objects.get(case_name = 'Case Test')
+        docs = get_docs_in_case( case.case_id)
+        self.assertEquals( docs,['APPLE_INC.10-K.20171103'] )
+
+    def test_users_in_case(self):
+        case = Case.objects.get(case_name = 'Case Test')
+        users = case.user_permissions.all()[0]
+        tester = User.objects.get(username='Test')
+        self.assertEquals(users, tester )
 
 
-    def test_labels(self):
-        doc = Document.objects.get(doc_id='APPLE_INC.10-K.20171103')
-        field_label = doc._meta.get_field('file').verbose_name
-        self.assertEqual(field_label, 'file')
-
-    def test_defstor(self):
-        content = "<class 'storages.backends.gcloud.GoogleCloudStorage'>"
-        self.assertEqual(str(default_storage.__class__) , content )
-
-    def test_document_save(self):
-        doc = Document.objects.get(doc_id='APPLE_INC.10-K.20171103')
-        content = str(doc.file.url).replace("%2F", "/")
-        self.assertEquals(content, 'https://storage.googleapis.com/autointern-dev/static/document_folder/testing_file.txt')

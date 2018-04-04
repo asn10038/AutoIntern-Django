@@ -1,70 +1,63 @@
 {% extends "autoIntern/base.html" %}
 {% block content %}
-{% if user is null %}
-    <!-- Generic Homepage for not logged in User -->
-    <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
-      <div class="col-md-5 p-lg-5 mx-auto my-5">
-        <h1 class="display-4 font-weight-normal">Auto Intern</h1>
-        <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
-        <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
-      </div>
-      <div class="product-device box-shadow d-none d-md-block"></div>
-      <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
-    </div>
+{% if user.is_authenticated %}
+{% if file is null %}
 {% else %}
-    <!-- what the user sees if they are logged in -->
-    <!-- Probably will be the filesystem or cases or something like that -->
+<div class="container">
+  <button class="btn btn-primary btn-lg mx-5 my-2 btn-block" data-toggle="modal" type="button" data-target="#exportTags">Export Tags</button>
 
-    <!-- For now going to show an upload button that allows to upload local Files -->
-    <!-- as well as scrape a url for the content and add it to the file system -->
-    {% if file is null %}
-    {% else %}
-
-    <button class="btn btn-outline-primary" data-toggle="modal" type="button" data-target="#exportTags">Export Tags</button>
-
-    <!-- Export modal -->
-    <div class="modal" tabindex="-1" role="alertdialog" id="exportTags">
-      <div class="modal-dialog" role="alertdialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Export Tags - Choose filetype:</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-              <form action="/exportTags/" method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="path" value="{{ request.get_full_path }}">
-                  <input type="hidden" name="csv" value="">
-                  <button type="submit" class="btn btn-outline-primary">.CSV</button>
-              </form>
-              <form action="/exportTags/" method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="path" value="{{ request.get_full_path }}">
-                  <input type="hidden" name="txt" value="">
-                  <button type="submit" class="btn btn-outline-primary">.TXT</button>
-              </form>
-              <form action="/exportTags/" method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="path" value="{{ request.get_full_path }}">
-                  <input type="hidden" name="json" value="">
-                  <button type="submit" class="btn btn-outline-primary">.JSON</button>
-              </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
-          </div>
-        </div>
+  <!-- Authenticated and there is a file -->
+  <div class="m-5">
+    {{ file | safe }}
+  </div>
+  {% endif %}
+  {% else %}
+  <!-- Generic Homepage for not logged in User -->
+  <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
+    <div class="col-md-5 p-lg-5 mx-auto my-5">
+      <h1 class="display-4 font-weight-normal">Auto Intern</h1>
+      <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
+      <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
+    </div>
+    <div class="product-device box-shadow d-none d-md-block"></div>
+    <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
+  </div>
+</div>
+<!-- Export modal -->
+<div class="modal" tabindex="-1" role="alertdialog" id="exportTags">
+  <div class="modal-dialog" role="alertdialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Export Tags - Choose filetype:</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="/exportTags/" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="path" value="{{ request.get_full_path }}">
+          <input type="hidden" name="csv" value="">
+          <button type="submit" class="btn btn-outline-primary">.CSV</button>
+        </form>
+        <form action="/exportTags/" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="path" value="{{ request.get_full_path }}">
+          <input type="hidden" name="txt" value="">
+          <button type="submit" class="btn btn-outline-primary">.TXT</button>
+        </form>
+        <form action="/exportTags/" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="path" value="{{ request.get_full_path }}">
+          <input type="hidden" name="json" value="">
+          <button type="submit" class="btn btn-outline-primary">.JSON</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>
-
-    <!--<iframe srcdoc={{file}}> </iframe> -->
-    {{ file | safe }}
-    {% endif %}
-
-
-
-
+  </div>
+</div>
 {% endif %}
 {% endblock %}

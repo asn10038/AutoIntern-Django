@@ -1,40 +1,62 @@
-# Copyright 2015 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
+from django.shortcuts import render
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from autoIntern.forms import UserForm
 from autoIntern import models
 from autoIntern.parse_identifiers import GetDocumentByHeader
 import json
 import csv
 
+
 def index(request):
-    template = loader.get_template('autoIntern/homePage.html')
-    userForm = UserForm()
-
     # Check if user is logged in
-    if request.session.get("userEmail") == None:
-        context = {'userForm' : UserForm(), 'user' : None}
-        return HttpResponse(template.render(context, request))
+    if request.user.is_authenticated:
+        context = {'doc_ids': get_doc_ids(), 'zipped_data' : get_case_ids(request)}
     else:
-        user = models.User.objects.get(email=request.session.get("userEmail"))
-        doc_ids = get_doc_ids()
-        context = {'userForm' : UserForm(), 'user' : user, 'doc_ids': doc_ids}
-        return HttpResponse(template.render(context, request))
+        context = {'userForm': UserForm()}
 
+    return render(request, 'autoIntern/homePage.html', context)
+
+
+def userLogin(request):
+    """Login Users"""
+    if request.method == 'POST':
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        user = authenticate(request, username=username, password=password)
+
+        context = {'userForm': UserForm()}
+
+        # User successfully authenticated
+        if user is not None:
+            login(request, user)
+            context = {'doc_ids': get_doc_ids(), 'zipped_data' : get_case_ids(request)}
+        return render(request, 'autoIntern/homePage.html', context)
+
+
+def userLogout(request):
+    """Defines the logout behavior"""
+    if request.method == 'POST':
+        logout(request)
+        return HttpResponseRedirect('/')
+
+
+def register(request):
+    """Register Users"""
+    userForm = UserForm()
+    if request.method == 'POST':
+        userForm = UserForm(request.POST)
+        if userForm.is_valid():
+            user = userForm.save()
+        return HttpResponseRedirect('/')
+    if request.method == 'GET':
+        return HttpResponseRedirect('/')
+
+
+# TODO: Move
 def get_doc_ids():
     documents = models.Document.objects.all()
 
@@ -45,110 +67,88 @@ def get_doc_ids():
 
     return doc_ids
 
+# TODO: Move
+def get_case_ids(request):
+    userperms = models.Case.objects.all().filter(user_permissions=request.user)
 
+    case_ids = []
+    case_names = []
+
+    for perm in userperms:
+
+        case_ids.append(perm.case_id)
+        case_names.append(perm.case_name)
+
+    return zip(case_ids, case_names)
+
+
+# TODO: Move
+def get_docs_in_case(case_id):
+    case = models.Case.objects.get(case_id =case_id)
+    doc_ids = []
+
+    for doc in case.documents.all():
+        doc_ids.append(doc.doc_id)
+
+    return doc_ids
+
+
+
+@login_required(redirect_field_name='', login_url='/')
 def viewDocument(request):
     if request.method == 'GET':
-        # If not logged in, redirect
-        if request.session.get("userEmail") == None:
-            return HttpResponseRedirect('/')
-
         try:
-            userForm = UserForm()
-            template = loader.get_template('autoIntern/viewDocument.html')
-            user = models.User.objects.get(email=request.session.get("userEmail"))
-
             cur_doc_id = request.GET['id']
             document = models.Document.objects.get(doc_id=cur_doc_id)
             file = document.file.read().decode('utf-8')
-            #"AMAZON_COM_INC.10-Q.20171027.txt")
-
-            doc_ids = get_doc_ids()
-
-            context = {'userForm': UserForm(), 'user' : user, "file" : file, 'doc_ids': doc_ids}
-            return HttpResponse(template.render(context, request))
-
+            context = {'file': file}
+            return render(request, 'autoIntern/viewDocument.html', context)
         except:
-            userForm = UserForm()
-            template = loader.get_template('autoIntern/homePage.html')
-            user = models.User.objects.get(email=request.session.get("userEmail"))
-
-            doc_ids = get_doc_ids()
-
-            context = {'userForm': UserForm(), 'user' : user, 'doc_ids': doc_ids}
-            return HttpResponse(template.render(context, request))
+            context = {'doc_ids': get_doc_ids()}
+            return render(request, 'autoIntern/viewDocument.html', context)
 
 
-def register(request):
-    """Register Users"""
-    userForm = UserForm()
-    if request.method == 'POST':
-        userForm = UserForm(request.POST)
-        if userForm.is_valid():
-            user = models.User()
-            user = models.User(**userForm.cleaned_data)
-            user.save()
-            request.session['userEmail'] = user.email
-            doc_ids = get_doc_ids()
-        return HttpResponse(loader.get_template('autoIntern/homePage.html').render({'userForm':userForm, 'user':user, 'doc_ids': doc_ids}, request))
-
+@login_required(redirect_field_name='', login_url='/')
+def viewCase(request):
     if request.method == 'GET':
-        return HttpResponse(loader.get_template('autoIntern/homePage.html').render({'userForm': userForm, 'user':None}, request))
-
-def login(request):
-    """Defines the login behavior"""
-    if request.method == 'POST':
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        template = loader.get_template('autoIntern/homePage.html')
-        userForm = UserForm()
-        user = None
-        # Get first 10 documents here and add to context
-        context = {'userForm': userForm, 'user': user}
         try:
-            user = models.User.objects.get(email=email)
-            if password == user.password:
-                request.session['userEmail'] = user.email
+            cur_case_id = request.GET['id']
+            case = models.Case.objects.get(case_id=cur_case_id)
+            case_name = case.case_name
+            documents = get_docs_in_case(cur_case_id)
+            context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
 
-                doc_ids = get_doc_ids()
-
-                context = {'userForm': userForm, 'user': user, 'doc_ids': doc_ids}
-                return HttpResponse(template.render(context,request))
+            return render(request, 'autoIntern/viewCase.html', context)
 
         except:
-            return HttpResponse(template.render(context,request))
+            print ("EXCEPT VIEWCASE")
+            return HttpResponseRedirect('/')
 
-def logout(request):
-    """Defines the logout behavior"""
-    if request.method == 'POST':
-        template = loader.get_template('autoIntern/homePage.html')
-        context = {'userForm': UserForm(), 'user': None}
-        request.session['userEmail'] = None
-        return HttpResponseRedirect('/')
-        #return HttpResponse(template.render(context, request))
-    else:
-        return HttpResponseRedirect('/')
 
+@login_required(redirect_field_name='', login_url='/')
 def upload(request):
     '''Handles Local file uploads'''
     if request.method == 'POST':
-        userForm = UserForm()
-        template = loader.get_template('autoIntern/homePage.html')
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect('/')
 
-        # for line in request.FILES['uploadFile']:
-        #     print(line)
-
-        #####################################
-        user = models.User.objects.get(email=request.session.get("userEmail"))
-        doc_ids = get_doc_ids()
-        context = {'userForm' : UserForm(), 'user' : user, 'doc_ids': doc_ids}
+        user = User.objects.get(username=request.user)
 
         new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
         new_document.save()
 
-        return HttpResponse(template.render(context, request))
+        if 'case_id' in request.POST:
+            case = models.Case.objects.get(case_id=request.POST['case_id'])
+            case.documents.add(new_document)
+
+        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
+
+        return render(request, 'autoIntern/homePage.html', context)
     else:
         return HttpResponseRedirect('/')
 
+
+@login_required(redirect_field_name='', login_url='/')
 def exportTags(request):
     ''' Exports tags associated with document'''
     # Tags to be exported:
@@ -200,8 +200,28 @@ def exportTags(request):
                 return HttpResponseRedirect('/')
 
             return response
-
         except:
             return HttpResponseRedirect('/')
     else:
         return HttpResponseRedirect('/')
+
+
+# TODO: Handle repeated case names (add number if repeat)
+@login_required(redirect_field_name='', login_url='/')
+def createCase(request):
+    currUser = User.objects.get(username=request.user)
+
+    name = request.POST['caseName']
+    new_case = models.Case(case_name=name)
+    new_case.save()
+    new_case.user_permissions.add(currUser)
+
+    new_perm = models.Permissions(user=currUser, case=new_case, user_type=models.Permissions.MANAGER_USER)
+    new_perm.save()
+
+    if request.user.is_authenticated:
+        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
+    else:
+        context = {'userForm': UserForm()}
+
+    return render(request, 'autoIntern/homePage.html', context)

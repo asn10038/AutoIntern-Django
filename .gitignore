@@ -100,3 +100,6 @@ autointernvenv/
 
 # mypy
 .mypy_cache/
+
+# IDE workspace data
+.idea/
