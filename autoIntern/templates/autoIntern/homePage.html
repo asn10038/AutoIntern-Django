@@ -16,6 +16,11 @@
   </li>
 </ul>
 
+{% if upload_fail %}
+<script>alert('That Document has already been uploaded')</script>
+{% endif%}
+
+
 <div id="case_docs_tabContent" class="tab-content">
   <div class="tab-pane fade in active" id="cases">
     <button data-toggle="modal" data-target="#caseModal" type="button"  class="btn btn-primary btn-lg mx-5 my-2 btn-block">Create Case</button>

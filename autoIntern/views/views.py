@@ -1,6 +1,6 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -9,6 +9,8 @@ from autoIntern import models
 from autoIntern.parse_identifiers import GetDocumentByHeader
 import json
 import csv
+from django.core.exceptions import ObjectDoesNotExist
+
 
 
 def index(request):
@@ -134,20 +136,49 @@ def upload(request):
 
         user = User.objects.get(username=request.user)
 
-        new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
-        new_document.save()
+        new_document = None
+        try:
+            if request.FILES['uploadFile'] is not None:
+                new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
+
+        # just reroutes to homepage if try to upload nothing
+        # @TODO handle the null exception better
+        except KeyError:
+            if request.POST['uploadFile'] == '':
+                return HttpResponseRedirect('/')
+
+        if new_document[0] == False and 'case_id' in request.POST:
+            case = models.Case.objects.get(case_id=request.POST['case_id'])
+            cur_case_id = case.case_id
+            case_name = case.case_name
+            existing_doc = models.Document.objects.get(doc_id = new_document[1])
+            case.documents.add(existing_doc)
+            documents = get_docs_in_case(cur_case_id)
+            context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id, 'upload_fail':True}
+            return render(request, 'autoIntern/viewCase.html', context)
+
+        if new_document[0] == False:
+            context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request), 'upload_fail': True}
+            return render(request, 'autoIntern/homePage.html', context)
+
 
         if 'case_id' in request.POST:
             case = models.Case.objects.get(case_id=request.POST['case_id'])
+            cur_case_id = case.case_id
             case.documents.add(new_document)
+            case_name = case.case_name
+            documents = get_docs_in_case(cur_case_id)
+            context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
 
-        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
+            return render(request, 'autoIntern/viewCase.html', context)
 
-        return render(request, 'autoIntern/homePage.html', context)
+        else:
+            context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
+            return render(request, 'autoIntern/homePage.html', context)
     else:
         return HttpResponseRedirect('/')
 
-
+# @Todo make this work again
 @login_required(redirect_field_name='', login_url='/')
 def exportTags(request):
     ''' Exports tags associated with document'''
@@ -206,13 +237,24 @@ def exportTags(request):
         return HttpResponseRedirect('/')
 
 
-# TODO: Handle repeated case names (add number if repeat)
+# TODO: Alert user to a repeated case name (handles repeat)
 @login_required(redirect_field_name='', login_url='/')
 def createCase(request):
     currUser = User.objects.get(username=request.user)
-
+    new_case = None
     name = request.POST['caseName']
-    new_case = models.Case(case_name=name)
+    case_exists = None
+    try:
+        case = models.Case.objects.get(case_name=name)
+        case_exists = True
+    except ObjectDoesNotExist:
+        case_exists = False
+
+    if case_exists == True:
+        new_case = models.Case(case_name=name+'(1)')
+    else:
+        new_case = models.Case(case_name = name)
+
     new_case.save()
     new_case.user_permissions.add(currUser)
 

@@ -25,6 +25,13 @@
   </tbody>
 </table>
 
+{% if upload_fail %}
+<script>
+alert('That Document has already been uploaded, but has been added to this case')
+
+</script>
+
+{% endif%}
 <!-- Upload modal -->
 <div class="modal" tabindex="-1" role="alertdialog" id="uploadModal">
   <div class="modal-dialog" role="alertdialog">
