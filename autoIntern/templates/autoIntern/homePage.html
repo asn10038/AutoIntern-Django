@@ -1,4 +1,5 @@
 {% extends "autoIntern/base.html" %}
+
 {% block content %}
 
 {% if user.is_authenticated %}
@@ -24,7 +25,7 @@
 <div id="case_docs_tabContent" class="tab-content">
   <div class="tab-pane fade in active" id="cases">
     <button data-toggle="modal" data-target="#caseModal" type="button"  class="btn btn-primary btn-lg mx-5 my-2 btn-block">Create Case</button>
-    <table class="m-5 table">
+    <!-- <table class="m-5 table">
       <thead>
       <tr>
         <th scope="col"> Cases </th>
@@ -37,11 +38,76 @@
       </tr>
       {% endfor %}
       </tbody>
+    </table> -->
+
+    <table id="caseTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+      <thead>
+        <tr>
+          <th> Case Name </th>
+          <th> Created </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for case in cases %}
+        <tr>
+          <th>
+            <a href="/viewCase?id={{ case.case_id }}">
+              {{ case.case_name }}
+            </a>
+          </th>
+          <th>
+            <a href="/viewCase?id={{ case.case_id }}">
+              {{ case.create_datetime }}
+            </a>
+          </th>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
+
+
   </div>
   <div class="tab-pane fade" id="documents">
     <button data-toggle="modal" type="button" data-target="#uploadModal" class="btn btn-primary btn-lg btn-block mx-5 my-2">Upload Document</button>
-    <table class="table m-5">
+
+    <table id="documentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+      <thead>
+        <tr>
+          <th> Company </th>
+          <th> Document Type </th>
+          <th> Document Date </th>
+          <th> Uploaded </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for document in documents %}
+        <tr>
+          <th>
+            <a href="/viewDocument?id={{ document.doc_id }}">
+              {{ document.company }}
+            </a>
+          </th>
+          <th>
+            <a href="/viewDocument?id={{ document.doc_id }}">
+              {{ document.doc_type }}
+            </a>
+          </th>
+          <th>
+            <a href="/viewDocument?id={{ document.doc_id }}">
+              {{ document.doc_date }}
+            </a>
+          </th>
+          <th>
+            <a href="/viewDocument?id={{ document.doc_id }}">
+              {{ document.upload_datetime }}
+            </a>
+          </th>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- <table class="table m-5">
       <thead>
       <tr>
         <th scope="col">Documents </th>
@@ -54,10 +120,26 @@
       </tr>
       {% endfor %}
       </tbody>
-    </table>
+    </table> -->
   </div>
 </div>
 
+<script>
+  $(document).ready( function () {
+  <!-- Not sure what this does but it adjusts the columns -->
+  $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
+        $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+    } );
+  $('#documentTable').DataTable( {
+  scrollY: 500,
+  scrollCollapse: true,
+  paging: false});
+  $('#caseTable').DataTable( {
+  scrollY: 500,
+  scrollCollapse: true,
+  paging: false});
+  });
+</script>
 <!-- Upload modal -->
 <div class="modal" tabindex="-1" role="alertdialog" id="uploadModal">
   <div class="modal-dialog" role="alertdialog">

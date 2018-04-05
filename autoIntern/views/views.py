@@ -16,7 +16,7 @@ from django.core.exceptions import ObjectDoesNotExist
 def index(request):
     # Check if user is logged in
     if request.user.is_authenticated:
-        context = {'doc_ids': get_doc_ids(), 'zipped_data' : get_case_ids(request)}
+        context = {'documents': get_documents(), 'cases' : get_cases(request)}
     else:
         context = {'userForm': UserForm()}
 
@@ -35,7 +35,7 @@ def userLogin(request):
         # User successfully authenticated
         if user is not None:
             login(request, user)
-            context = {'doc_ids': get_doc_ids(), 'zipped_data' : get_case_ids(request)}
+            context = {'documents': get_documents(), 'cases' : get_cases(request)}
         return render(request, 'autoIntern/homePage.html', context)
 
 
@@ -59,42 +59,22 @@ def register(request):
 
 
 # TODO: Move
-def get_doc_ids():
-    documents = models.Document.objects.all()
-
-    doc_ids = []
-
-    for document in documents:
-        doc_ids.append(document.doc_id)
-
-    return doc_ids
+def get_documents():
+    return models.Document.objects.all()
 
 # TODO: Move
-def get_case_ids(request):
-    userperms = models.Case.objects.all().filter(user_permissions=request.user)
-
-    case_ids = []
-    case_names = []
-
-    for perm in userperms:
-
-        case_ids.append(perm.case_id)
-        case_names.append(perm.case_name)
-
-    return zip(case_ids, case_names)
-
+def get_cases(request):
+    return models.Case.objects.all().filter(user_permissions=request.user)
 
 # TODO: Move
 def get_docs_in_case(case_id):
-    case = models.Case.objects.get(case_id =case_id)
-    doc_ids = []
+    case = models.Case.objects.get(case_id = case_id)
+    documents = []
 
-    for doc in case.documents.all():
-        doc_ids.append(doc.doc_id)
+    for document in case.documents.all():
+        documents.append(document)
 
-    return doc_ids
-
-
+    return documents
 
 @login_required(redirect_field_name='', login_url='/')
 def viewDocument(request):
@@ -106,7 +86,7 @@ def viewDocument(request):
             context = {'file': file}
             return render(request, 'autoIntern/viewDocument.html', context)
         except:
-            context = {'doc_ids': get_doc_ids()}
+            context = {'documents': get_documents()}
             return render(request, 'autoIntern/viewDocument.html', context)
 
 
@@ -158,7 +138,7 @@ def upload(request):
             return render(request, 'autoIntern/viewCase.html', context)
 
         if new_document[0] == False:
-            context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request), 'upload_fail': True}
+            context = {'documents': get_documents(), 'cases': get_cases(request), 'upload_fail': True}
             return render(request, 'autoIntern/homePage.html', context)
 
 
@@ -173,7 +153,7 @@ def upload(request):
             return render(request, 'autoIntern/viewCase.html', context)
 
         else:
-            context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
+            context = {'documents': get_documents(), 'cases' : get_cases(request)}
             return render(request, 'autoIntern/homePage.html', context)
     else:
         return HttpResponseRedirect('/')
@@ -262,7 +242,7 @@ def createCase(request):
     new_perm.save()
 
     if request.user.is_authenticated:
-        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
+        context = {'documents': get_documents(), 'cases': get_cases(request)}
     else:
         context = {'userForm': UserForm()}
 
