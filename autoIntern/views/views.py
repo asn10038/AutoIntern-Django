@@ -12,7 +12,6 @@ import csv
 from django.core.exceptions import ObjectDoesNotExist
 
 
-
 def index(request):
     # Check if user is logged in
     if request.user.is_authenticated:
@@ -96,6 +95,12 @@ def viewCase(request):
         try:
             cur_case_id = request.GET['id']
             case = models.Case.objects.get(case_id=cur_case_id)
+            user = User.objects.get(username=request.user)
+
+            #If user types in case ID, redirect
+            if models.Permissions.objects.all().filter(case=case, user=user).count() == 0:
+                return HttpResponseRedirect('/')
+
             case_name = case.case_name
             documents = get_docs_in_case(cur_case_id)
             context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
@@ -103,10 +108,10 @@ def viewCase(request):
             return render(request, 'autoIntern/viewCase.html', context)
 
         except:
-            print ("EXCEPT VIEWCASE")
             return HttpResponseRedirect('/')
 
 
+# TODO: Check and simplify conditional flow (if / else)
 @login_required(redirect_field_name='', login_url='/')
 def upload(request):
     '''Handles Local file uploads'''
@@ -158,7 +163,6 @@ def upload(request):
     else:
         return HttpResponseRedirect('/')
 
-# @Todo make this work again
 @login_required(redirect_field_name='', login_url='/')
 def exportTags(request):
     ''' Exports tags associated with document'''
