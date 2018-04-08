@@ -8,8 +8,10 @@
 <!-- For now going to show an upload button that allows to upload local Files -->
 <!-- as well as scrape a url for the content and add it to the file system -->
 <div class="container">
-<button class="btn btn-primary btn-lg mx-5 my-2 btn-block" data-toggle="modal" type="button" data-target="#uploadModal">Upload to {{case_name}} </button>
-
+<button class="btn btn-primary btn-lg mx-5 my-2" data-toggle="modal" type="button" data-target="#uploadModal">Upload to {{case_name}} </button>
+{% if is_manager %}
+<button class="btn btn-primary btn-lg mx-5 my-2" data-toggle="modal" type="button" data-target="#addUserModal">Add User to {{case_name}} </button>
+{% endif %}
 <table id="documentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
   <thead>
     <tr>
@@ -64,10 +66,9 @@
 {% if upload_fail %}
 <script>
 alert('That Document has already been uploaded, but has been added to this case')
-
 </script>
-
 {% endif%}
+
 <!-- Upload modal -->
 <div class="modal" tabindex="-1" role="alertdialog" id="uploadModal">
   <div class="modal-dialog" role="alertdialog">
@@ -93,7 +94,55 @@ alert('That Document has already been uploaded, but has been added to this case'
     </div>
   </div>
 </div>
+
+<!-- AddUser modal -->
+<div class="modal" tabindex="-1" role="alertdialog" id="addUserModal">
+  <div class="modal-dialog modal-lg" role="alertdialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Users</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="/addUsers/" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <h3>Users not in Case</h3>
+            <table id="documentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>User Name</th>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for user in users %}
+                <tr>
+                  <td><input type="checkbox" name="ids[]" value="{{ user.username }}"></td>
+                  <th>
+                      {{ user.username }}
+                  </th>
+                  <th>
+                      {{ user.first_name}}
+                  </th>
+                  <th>
+                      {{ user.last_name }}
+                  </th>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          <input type="hidden" name="case_id" value="{{ case_id }}">
+          <button type="submit" class="btn btn-outline-primary">Add Users</button>
+        </form>
+    </div>
+  </div>
+  </div>
 </div>
+
 
 {% else %}
 <!-- Generic Homepage for not logged in User -->
