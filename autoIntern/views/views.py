@@ -134,22 +134,14 @@ def createTag(request):
                 print(thing)
             cur_doc_id = request.POST['currentDocumentId']
 
-            print("The current doc id is: {}".format(cur_doc_id))
             currentUser = request.user
-            print("The current user is: {}".format(currentUser))
-            print("you made it past the current user")
             newTagLabel = request.POST['newTagLabel']
             newTagValue = request.POST['newTagContent']
             # newTagIndex = request.POST['newTagIndex']
             # newTagLineNum = request.POST['newTagLineNum']
             newTagIndex = newTagLineNum = 420
             rangySelection = request.POST['serializedRangySelection']
-            print("The new tag label is: {}".format(newTagLabel))
-            print("The new tag value is: {}".format(newTagValue))
-            print("The current doc id is: {}".format(cur_doc_id))
-            print("The new tag Index is: {}".format(newTagIndex))
-            print("The new tag line num is: {}".format(newTagLineNum))
-            print("The rangy serialized selection is: {}".format(rangySelection))
+
 
             document = models.Document.objects.get(doc_id=cur_doc_id)
 
