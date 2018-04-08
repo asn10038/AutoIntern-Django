@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'viewCase', views.viewCase, name='viewCase'),
     url(r'exportTags/', views.exportTags, name='exportTags'),
     url(r'createCase/', views.createCase, name='createCase'),
+    url(r'createTag/',views.createTag, name='createTag'),
     url(r'changePassword/', auth_views.PasswordChangeView.as_view(
         template_name='registration/passwordChangeForm.html',
         success_url='/',), name='changePassword')
