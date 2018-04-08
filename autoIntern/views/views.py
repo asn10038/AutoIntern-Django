@@ -91,24 +91,47 @@ def viewDocument(request):
 
 @login_required(redirect_field_name='', login_url='/')
 def viewCase(request):
-    if request.method == 'GET':
-        try:
+    try:
+        if request.method == 'GET':
             cur_case_id = request.GET['id']
-            case = models.Case.objects.get(case_id=cur_case_id)
-            user = User.objects.get(username=request.user)
+        if request.method == 'POST':
+            cur_case_id = request.POST['case_id']
 
-            #If user types in case ID, redirect
-            if models.Permissions.objects.all().filter(case=case, user=user).count() == 0:
-                return HttpResponseRedirect('/')
+        case = models.Case.objects.get(case_id=cur_case_id)
+        user = User.objects.get(username=request.user)
 
-            case_name = case.case_name
-            documents = get_docs_in_case(cur_case_id)
-            context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
+        user_perms = models.Permissions.objects.all().filter(case=case, user=user)
 
-            return render(request, 'autoIntern/viewCase.html', context)
-
-        except:
+        #If user types in case ID, redirect
+        if user_perms.count() == 0:
             return HttpResponseRedirect('/')
+
+        case_name = case.case_name
+        documents = get_docs_in_case(cur_case_id)
+        context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
+
+        # If manager, add to context
+        if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
+            context['is_manager'] = True
+            users = User.objects.all()
+            case_users = models.Permissions.objects.filter(case=case)
+            case_usernames = []
+
+            for u in case_users:
+                case_usernames.append(u.user.username)
+
+            # List of users not currently in case
+            list = [user for user in users if user.username not in case_usernames and user.username != 'admin']
+            context['users'] = list
+
+        else:
+            context['is_manager'] = False
+
+        return render(request, 'autoIntern/viewCase.html', context)
+
+    except Exception as e:
+        print(e)
+        return HttpResponseRedirect('/')
 
 
 # TODO: Check and simplify conditional flow (if / else)
@@ -251,3 +274,22 @@ def createCase(request):
         context = {'userForm': UserForm()}
 
     return render(request, 'autoIntern/homePage.html', context)
+
+def addUsers(request):
+    ids = request.POST.getlist('ids[]')
+    case_id = request.POST['case_id']
+
+    case = models.Case.objects.get(case_id=case_id)
+
+    for id in ids:
+        user = User.objects.get(username=id)
+        case.user_permissions.add(user)
+
+        new_perm = models.Permissions(user=user, case=case, user_type=models.Permissions.BASE_USER)
+        new_perm.save()
+
+    case_name = case.case_name
+    documents = get_docs_in_case(case_id)
+    context = {'documents': documents, 'case_name': case_name, 'case_id': case_id}
+
+    return (viewCase(request))
