@@ -161,8 +161,6 @@ def viewCase(request):
 def createTag(request):
     if request.method=='POST':
         try:
-            for thing in request.POST:
-                print(thing)
             cur_doc_id = request.POST['currentDocumentId']
 
             currentUser = request.user
@@ -184,7 +182,6 @@ def createTag(request):
                           document_id = cur_doc_id,
                           rangySelection = rangySelection)
             newTag.save();
-            print('you have saved the new tag')
 
             return HttpResponseRedirect('/viewDocument?id='+cur_doc_id)
 
