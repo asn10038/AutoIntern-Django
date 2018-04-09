@@ -94,7 +94,6 @@ def viewDocument(request):
                     file += line
             try:
                 tags = models.Data.objects.filter(document__doc_id=cur_doc_id)
-                print(tags)
             except Exception as e:
                 print(e)
             # jsonTags = jsonify(tags)

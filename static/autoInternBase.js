@@ -12,14 +12,14 @@ function getCurrentDocumentId()
 
     function doSomethingWithSelectedText() {
         var selectedText = rangy.getSelection();
-        if (selectedText != "") {
+        if (selectedText != "" && typeof(selectedText) != 'undefined') {
+            $('#serializedRangySelection').attr("value", rangy.serializeSelection(selectedText, true))
 //            alert("Got selected text " + selectedText);
             $('#makeTagModal').modal('show')
             $('#newTagContent').text("New Tag Content: " + selectedText)
             $('#currentDocumentId').text("Document to Tag: " + getCurrentDocumentId())
             $('#newTagContentForm').attr("value", selectedText)
             $('#currentDocumentIdForm').attr("value", getCurrentDocumentId())
-            $('#serializedRangySelection').attr("value", rangy.serializeSelection(selectedText, true))
         }
     }
 
@@ -46,6 +46,7 @@ function highlightTags(tags)
     {
         try{
             serializedSelection = tag.fields.rangySelection;
+            console.log("Serialized Selection: " + serializedSelection)
         deserializedSelection = rangy.deserializeSelection(serializedSelection);
         console.log('deserialized selection: ' + deserializedSelection);
         highlighter.addClassApplier(rangy.createClassApplier('highlight', {
