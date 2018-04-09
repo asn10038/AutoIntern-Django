@@ -19,7 +19,7 @@ class AddUsersTest(TestCase):
         user = User.objects.get(username="Test")
 
         case = Case(case_name='Case Test')
-        case.user_permissions.add(user)
+        #case.user_permissions.add(user)
         #case.save()
 
     def testAddUsers(self):
