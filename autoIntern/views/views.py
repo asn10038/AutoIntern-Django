@@ -10,7 +10,9 @@ from autoIntern.parse_identifiers import GetDocumentByHeader
 import json
 import csv
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.core.serializers import serialize
+from django.db.models.query import QuerySet
+from django.template import Library
 
 def index(request):
     # Check if user is logged in
@@ -81,8 +83,26 @@ def viewDocument(request):
         try:
             cur_doc_id = request.GET['id']
             document = models.Document.objects.get(doc_id=cur_doc_id)
-            file = document.file.read().decode('utf-8')
-            context = {'file': file}
+
+            # TODO change the way the file is loaded to accomodate highlighting
+            raw = document.file.read().decode('utf-8')
+            file=''
+            tags = []
+            for line in raw.split('\n'):
+                # for line in content:
+                if ".js" not in line and ".css" not in line:
+                    file += line
+            try:
+                tags = models.Data.objects.filter(document__doc_id=cur_doc_id)
+                print(tags)
+            except Exception as e:
+                print(e)
+            # jsonTags = jsonify(tags)
+            try:
+                jsonTags = serialize('json', tags)
+            except Exception as e:
+                print(e)
+            context = {'file': file, 'tags':jsonTags}
             return render(request, 'autoIntern/viewDocument.html', context)
         except:
             context = {'documents': get_documents()}
@@ -127,8 +147,7 @@ def viewCase(request):
             list = [user for user in users if user.username not in case_usernames and user.username != 'admin']
             context['users'] = list
             context['case_users'] = case_users
-
-
+            
         else:
             context['is_manager'] = False
 
@@ -137,6 +156,43 @@ def viewCase(request):
     except Exception as e:
         print(e)
         return HttpResponseRedirect('/')
+
+
+@login_required(redirect_field_name='', login_url='/')
+def createTag(request):
+    if request.method=='POST':
+        try:
+            for thing in request.POST:
+                print(thing)
+            cur_doc_id = request.POST['currentDocumentId']
+
+            currentUser = request.user
+            newTagLabel = request.POST['newTagLabel']
+            newTagValue = request.POST['newTagContent']
+            # newTagIndex = request.POST['newTagIndex']
+            # newTagLineNum = request.POST['newTagLineNum']
+            newTagIndex = newTagLineNum = 420
+            rangySelection = request.POST['serializedRangySelection']
+
+
+            document = models.Document.objects.get(doc_id=cur_doc_id)
+
+            newTag = models.Data(creator_id = currentUser,
+                          value = newTagValue,
+                          label = newTagLabel,
+                          line = newTagLineNum,
+                          index = newTagIndex,
+                          document_id = cur_doc_id,
+                          rangySelection = rangySelection)
+            newTag.save();
+            print('you have saved the new tag')
+
+            return HttpResponseRedirect('/viewDocument?id='+cur_doc_id)
+
+        except Exception as e:
+            print("EXCEPTION CREATING TAG")
+            print(e)
+            return HttpResponseRedirect('/')
 
 
 # TODO: Check and simplify conditional flow (if / else)
@@ -323,3 +379,12 @@ def removeUsers(request):
 
     except:
         return HttpResponseRedirect('/')
+
+def getDocumentHTMLToRender(doc_id):
+    '''returns the html to render for a given document and the associated tags'''
+    pass
+
+def jsonify(object):
+    if isinstance(object, QuerySet):
+        return mark_safe(serialize('json', object))
+    return mark_safe(simplejson.dumps(object))
