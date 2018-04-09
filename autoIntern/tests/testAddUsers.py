@@ -32,6 +32,6 @@ class AddUsersTest(TestCase):
         user = User.objects.get(username="Test")
 
         response = self.client.post('/addUsers/', {
-            'case_id': str(case.case_id),
+            'case_id': '999',
             'ids[]': '[Test]'
         })
