@@ -114,15 +114,20 @@ def viewCase(request):
         if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
             context['is_manager'] = True
             users = User.objects.all()
-            case_users = models.Permissions.objects.filter(case=case)
+            case_users_perms = models.Permissions.objects.filter(case=case)
             case_usernames = []
+            case_users = []       # List of users that can be removed
 
-            for u in case_users:
+            for u in case_users_perms:
+                if u.user_type != models.Permissions.MANAGER_USER:
+                    case_users.append(u.user)
                 case_usernames.append(u.user.username)
 
-            # List of users not currently in case
+            # list = list of users not currently in case
             list = [user for user in users if user.username not in case_usernames and user.username != 'admin']
             context['users'] = list
+            context['case_users'] = case_users
+
 
         else:
             context['is_manager'] = False
@@ -287,6 +292,24 @@ def addUsers(request):
 
         new_perm = models.Permissions(user=user, case=case, user_type=models.Permissions.BASE_USER)
         new_perm.save()
+
+    case_name = case.case_name
+    documents = get_docs_in_case(case_id)
+    context = {'documents': documents, 'case_name': case_name, 'case_id': case_id}
+
+    return (viewCase(request))
+
+def removeUsers(request):
+    ids = request.POST.getlist('ids[]')
+    case_id = request.POST['case_id']
+
+    case = models.Case.objects.get(case_id=case_id)
+
+    for id in ids:
+        user = User.objects.get(username=id)
+        case.user_permissions.remove(user)
+
+        models.Permissions.objects.filter(case=case, user=user).delete()
 
     case_name = case.case_name
     documents = get_docs_in_case(case_id)
