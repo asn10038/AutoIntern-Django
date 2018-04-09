@@ -18,7 +18,7 @@ class AddUsersTest(TestCase):
             form.save()
         user = User.objects.get(username="Test")
 
-        case = Case(case_name='Case Test')
+        case = Case(case_name='Case Test', case_id=999)
         #case.user_permissions.add(user)
         #case.save()
 
