@@ -281,38 +281,45 @@ def createCase(request):
     return render(request, 'autoIntern/homePage.html', context)
 
 def addUsers(request):
-    ids = request.POST.getlist('ids[]')
-    case_id = request.POST['case_id']
+    try:
+        ids = request.POST.getlist('ids[]')
+        case_id = request.POST['case_id']
 
-    case = models.Case.objects.get(case_id=case_id)
+        case = models.Case.objects.get(case_id=case_id)
 
-    for id in ids:
-        user = User.objects.get(username=id)
-        case.user_permissions.add(user)
+        for id in ids:
+            user = User.objects.get(username=id)
+            case.user_permissions.add(user)
 
-        new_perm = models.Permissions(user=user, case=case, user_type=models.Permissions.BASE_USER)
-        new_perm.save()
+            new_perm = models.Permissions(user=user, case=case, user_type=models.Permissions.BASE_USER)
+            new_perm.save()
 
-    case_name = case.case_name
-    documents = get_docs_in_case(case_id)
-    context = {'documents': documents, 'case_name': case_name, 'case_id': case_id}
+        case_name = case.case_name
+        documents = get_docs_in_case(case_id)
+        context = {'documents': documents, 'case_name': case_name, 'case_id': case_id}
 
-    return (viewCase(request))
+        return (viewCase(request))
+    except:
+        return HttpResponseRedirect('/')
 
 def removeUsers(request):
-    ids = request.POST.getlist('ids[]')
-    case_id = request.POST['case_id']
+    try:
+        ids = request.POST.getlist('ids[]')
+        case_id = request.POST['case_id']
 
-    case = models.Case.objects.get(case_id=case_id)
+        case = models.Case.objects.get(case_id=case_id)
 
-    for id in ids:
-        user = User.objects.get(username=id)
-        case.user_permissions.remove(user)
+        for id in ids:
+            user = User.objects.get(username=id)
+            case.user_permissions.remove(user)
 
-        models.Permissions.objects.filter(case=case, user=user).delete()
+            models.Permissions.objects.filter(case=case, user=user).delete()
 
-    case_name = case.case_name
-    documents = get_docs_in_case(case_id)
-    context = {'documents': documents, 'case_name': case_name, 'case_id': case_id}
+        case_name = case.case_name
+        documents = get_docs_in_case(case_id)
+        context = {'documents': documents, 'case_name': case_name, 'case_id': case_id}
 
-    return (viewCase(request))
+        return (viewCase(request))
+
+    except:
+        return HttpResponseRedirect('/')
