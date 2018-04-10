@@ -3,115 +3,106 @@
 
 {% if user.is_authenticated %}
 <!-- what the user sees if they are logged in -->
-<!-- Probably will be the filesystem or cases or something like that -->
-
-<!-- For now going to show an upload button that allows to upload local Files -->
-<!-- as well as scrape a url for the content and add it to the file system -->
 <div class="container">
+  <button class="btn btn-primary btn-lg mx-5 my-2" data-toggle="modal" type="button" data-target="#uploadModal">Upload to {{case_name}} </button>
+  {% if is_manager %}
+  <button class="btn btn-primary btn-lg mx-5 my-2" data-toggle="modal" type="button" data-target="#addUserModal">Add User to {{case_name}} </button>
+  <button class="btn btn-primary btn-lg mx-5 my-2" data-toggle="modal" type="button" data-target="#removeUserModal">Remove User from {{case_name}} </button>
+  {% endif %}
+  <table id="documentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+    <thead>
+      <tr>
+        <th> Company </th>
+        <th> Document Type </th>
+        <th> Document Date </th>
+        <th> Uploaded </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for document in documents %}
+      <tr>
+        <th>
+          <a href="/viewDocument?id={{ document.doc_id }}">
+            {{ document.company }}
+          </a>
+        </th>
+        <th>
+          <a href="/viewDocument?id={{ document.doc_id }}">
+            {{ document.doc_type }}
+          </a>
+        </th>
+        <th>
+          <a href="/viewDocument?id={{ document.doc_id }}">
+            {{ document.doc_date }}
+          </a>
+        </th>
+        <th>
+          <a href="/viewDocument?id={{ document.doc_id }}">
+            {{ document.upload_datetime }}
+          </a>
+        </th>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-<button class="btn btn-primary btn-lg mx-5 my-2" data-toggle="modal" type="button" data-target="#uploadModal">Upload to {{case_name}} </button>
-{% if is_manager %}
-<button class="btn btn-primary btn-lg mx-5 my-2" data-toggle="modal" type="button" data-target="#addUserModal">Add User to {{case_name}} </button>
-<button class="btn btn-primary btn-lg mx-5 my-2" data-toggle="modal" type="button" data-target="#removeUserModal">Remove User from {{case_name}} </button>
-{% endif %}
-
-<table id="documentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
-  <thead>
-    <tr>
-      <th> Company </th>
-      <th> Document Type </th>
-      <th> Document Date </th>
-      <th> Uploaded </th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for document in documents %}
-    <tr>
-      <th>
-        <a href="/viewDocument?id={{ document.doc_id }}">
-          {{ document.company }}
-        </a>
-      </th>
-      <th>
-        <a href="/viewDocument?id={{ document.doc_id }}">
-          {{ document.doc_type }}
-        </a>
-      </th>
-      <th>
-        <a href="/viewDocument?id={{ document.doc_id }}">
-          {{ document.doc_date }}
-        </a>
-      </th>
-      <th>
-        <a href="/viewDocument?id={{ document.doc_id }}">
-          {{ document.upload_datetime }}
-        </a>
-      </th>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-
-
-<script>
-  $(document).ready( function () {
-  <!-- Not sure what this does but it adjusts the columns -->
-  $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
-        $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+  <script>
+    $(document).ready( function () {
+    <!-- Not sure what this does but it adjusts the columns -->
+    $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
+    $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
     } );
-  $('#documentTable').DataTable( {
-  scrollY: 500,
-  scrollCollapse: true,
-  paging: false});
-  });
-</script>
+    $('#documentTable').DataTable( {
+    scrollY: 500,
+    scrollCollapse: true,
+    paging: false});
+    });
+  </script>
 
-{% if upload_fail %}
-<script>
-alert('That Document has already been uploaded, but has been added to this case')
-</script>
-{% endif%}
+  {% if upload_fail %}
+  <script>
+    alert('That Document has already been uploaded, but has been added to this case')
+  </script>
+  {% endif%}
 
-<!-- Upload modal -->
-<div class="modal" tabindex="-1" role="alertdialog" id="uploadModal">
-  <div class="modal-dialog" role="alertdialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Upload File</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
+  <!-- Upload modal -->
+  <div class="modal" tabindex="-1" role="alertdialog" id="uploadModal">
+    <div class="modal-dialog" role="alertdialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Upload File</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
           <form action="/upload/" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <!-- Maybe Turn into DocumentModelForm at some point -->
             <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile">
             <input type="hidden" name="case_id" value="{{ case_id }}">
             <button type="submit" class="btn btn-outline-primary">Upload</button>
           </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
-<!-- AddUser modal -->
-<div class="modal" tabindex="-1" role="alertdialog" id="addUserModal">
-  <div class="modal-dialog modal-lg" role="alertdialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add Users</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form action="/addUsers/" method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <h3>Users not in Case</h3>
+  <!-- AddUser modal -->
+  <div class="modal" tabindex="-1" role="alertdialog" id="addUserModal">
+    <div class="modal-dialog modal-lg" role="alertdialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Users</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form action="/addUsers/" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h3>Users not in Case</h3>
             <table id="documentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
               <thead>
                 <tr>
@@ -126,40 +117,40 @@ alert('That Document has already been uploaded, but has been added to this case'
                 <tr>
                   <td><input type="checkbox" name="ids[]" value="{{ user.username }}"></td>
                   <th>
-                      {{ user.username }}
+                    {{ user.username }}
                   </th>
                   <th>
-                      {{ user.first_name}}
+                    {{ user.first_name}}
                   </th>
                   <th>
-                      {{ user.last_name }}
+                    {{ user.last_name }}
                   </th>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
-          <input type="hidden" name="case_id" value="{{ case_id }}">
-          <button type="submit" class="btn btn-outline-primary">Add Users</button>
-        </form>
+            <input type="hidden" name="case_id" value="{{ case_id }}">
+            <button type="submit" class="btn btn-outline-primary">Add Users</button>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
-  </div>
-</div>
 
-<!-- RemoveUser modal -->
-<div class="modal" tabindex="-1" role="alertdialog" id="removeUserModal">
-  <div class="modal-dialog modal-lg" role="alertdialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Remove Users</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form action="/removeUsers/" method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <h3>Users in Case</h3>
+  <!-- RemoveUser modal -->
+  <div class="modal" tabindex="-1" role="alertdialog" id="removeUserModal">
+    <div class="modal-dialog modal-lg" role="alertdialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Remove Users</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form action="/removeUsers/" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h3>Users in Case</h3>
             <table id="documentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
               <thead>
                 <tr>
@@ -174,36 +165,36 @@ alert('That Document has already been uploaded, but has been added to this case'
                 <tr>
                   <td><input type="checkbox" name="ids[]" value="{{ user.username }}"></td>
                   <th>
-                      {{ user.username }}
+                    {{ user.username }}
                   </th>
                   <th>
-                      {{ user.first_name}}
+                    {{ user.first_name}}
                   </th>
                   <th>
-                      {{ user.last_name }}
+                    {{ user.last_name }}
                   </th>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
-          <input type="hidden" name="case_id" value="{{ case_id }}">
-          <button type="submit" class="btn btn-outline-primary">Remove Users</button>
-        </form>
+            <input type="hidden" name="case_id" value="{{ case_id }}">
+            <button type="submit" class="btn btn-outline-primary">Remove Users</button>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
-  </div>
-</div>
 
-{% else %}
-<!-- Generic Homepage for not logged in User -->
-<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
-  <div class="col-md-5 p-lg-5 mx-auto my-5">
-    <h1 class="display-4 font-weight-normal">Auto Intern</h1>
-    <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
-    <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
+  {% else %}
+  <!-- Generic Homepage for not logged in User -->
+  <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
+    <div class="col-md-5 p-lg-5 mx-auto my-5">
+      <h1 class="display-4 font-weight-normal">Auto Intern</h1>
+      <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
+      <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
+    </div>
+    <div class="product-device box-shadow d-none d-md-block"></div>
+    <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
   </div>
-  <div class="product-device box-shadow d-none d-md-block"></div>
-  <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
-</div>
-{% endif %}
-{% endblock %}
+  {% endif %}
+  {% endblock %}

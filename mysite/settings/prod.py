@@ -17,7 +17,6 @@ DATABASES = {
 }
 # [END dbconfig]
 
-
 # Static files (CSS, JavaScript, Images)
 # [START staticurl]
 GS_BUCKET_NAME = 'autointern-prod'

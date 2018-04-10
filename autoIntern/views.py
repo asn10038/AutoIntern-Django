@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from autoIntern.forms import UserForm
 from autoIntern import models
-from autoIntern.parse_identifiers import GetDocumentByHeader
+from autoIntern.helpers import GetDocumentByHeader, get_documents, get_cases, get_docs_in_case
 import json
 import csv
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,15 +14,14 @@ from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.template import Library
 
+
 def index(request):
     # Check if user is logged in
     if request.user.is_authenticated:
         context = {'documents': get_documents(), 'cases' : get_cases(request)}
     else:
         context = {'userForm': UserForm()}
-
     return render(request, 'autoIntern/homePage.html', context)
-
 
 def userLogin(request):
     """Login Users"""
@@ -31,21 +30,20 @@ def userLogin(request):
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
 
-        context = {'userForm': UserForm()}
-
         # User successfully authenticated
         if user is not None:
             login(request, user)
-            context = {'documents': get_documents(), 'cases' : get_cases(request)}
-        return render(request, 'autoIntern/homePage.html', context)
-
+        return HttpResponseRedirect('/')
+    if request.method == 'GET':
+        return HttpResponseRedirect('/')
 
 def userLogout(request):
     """Defines the logout behavior"""
     if request.method == 'POST':
         logout(request)
         return HttpResponseRedirect('/')
-
+    if request.method == 'GET':
+        return HttpResponseRedirect('/')
 
 def register(request):
     """Register Users"""
@@ -58,25 +56,6 @@ def register(request):
     if request.method == 'GET':
         return HttpResponseRedirect('/')
 
-
-# TODO: Move
-def get_documents():
-    return models.Document.objects.all()
-
-# TODO: Move
-def get_cases(request):
-    return models.Case.objects.all().filter(user_permissions=request.user)
-
-# TODO: Move
-def get_docs_in_case(case_id):
-    case = models.Case.objects.get(case_id = case_id)
-    documents = []
-
-    for document in case.documents.all():
-        documents.append(document)
-
-    return documents
-
 @login_required(redirect_field_name='', login_url='/')
 def viewDocument(request):
     if request.method == 'GET':
@@ -84,29 +63,26 @@ def viewDocument(request):
             cur_doc_id = request.GET['id']
             document = models.Document.objects.get(doc_id=cur_doc_id)
 
-            # TODO change the way the file is loaded to accomodate highlighting
             raw = document.file.read().decode('utf-8')
             file=''
             tags = []
             for line in raw.split('\n'):
-                # for line in content:
+                # Can we remove the new body css this way too?
                 if ".js" not in line and ".css" not in line:
                     file += line
             try:
                 tags = models.Data.objects.filter(document__doc_id=cur_doc_id)
             except Exception as e:
                 print(e)
-            # jsonTags = jsonify(tags)
             try:
                 jsonTags = serialize('json', tags)
+                context = {'file': file, 'tags': jsonTags}
             except Exception as e:
                 print(e)
-            context = {'file': file, 'tags':jsonTags}
+                context = {'file': file}
             return render(request, 'autoIntern/viewDocument.html', context)
         except:
-            context = {'documents': get_documents()}
-            return render(request, 'autoIntern/viewDocument.html', context)
-
+            return HttpResponseRedirect('/')
 
 @login_required(redirect_field_name='', login_url='/')
 def viewCase(request):
@@ -125,9 +101,8 @@ def viewCase(request):
         if user_perms.count() == 0:
             return HttpResponseRedirect('/')
 
-        case_name = case.case_name
-        documents = get_docs_in_case(cur_case_id)
-        context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
+        context = {'documents': get_docs_in_case(cur_case_id),
+                   'case_name': case.case_name, 'case_id': cur_case_id}
 
         # If manager, add to context
         if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
@@ -142,20 +117,17 @@ def viewCase(request):
                     case_users.append(u.user)
                 case_usernames.append(u.user.username)
 
-            # list = list of users not currently in case
-            list = [user for user in users if user.username not in case_usernames and user.username != 'admin']
-            context['users'] = list
+            users_not_in_case = [user for user in users if user.username not in case_usernames and user.username != 'admin']
+            context['users'] = users_not_in_case
             context['case_users'] = case_users
-            
+
         else:
             context['is_manager'] = False
 
         return render(request, 'autoIntern/viewCase.html', context)
 
     except Exception as e:
-        print(e)
         return HttpResponseRedirect('/')
-
 
 @login_required(redirect_field_name='', login_url='/')
 def createTag(request):
@@ -166,21 +138,18 @@ def createTag(request):
             currentUser = request.user
             newTagLabel = request.POST['newTagLabel']
             newTagValue = request.POST['newTagContent']
-            # newTagIndex = request.POST['newTagIndex']
-            # newTagLineNum = request.POST['newTagLineNum']
-            newTagIndex = newTagLineNum = 420
+            newTagIndex = newTagLineNum = 420 # Not needed
             rangySelection = request.POST['serializedRangySelection']
-
 
             document = models.Document.objects.get(doc_id=cur_doc_id)
 
             newTag = models.Data(creator_id = currentUser,
-                          value = newTagValue,
-                          label = newTagLabel,
-                          line = newTagLineNum,
-                          index = newTagIndex,
-                          document_id = cur_doc_id,
-                          rangySelection = rangySelection)
+                                 value = newTagValue,
+                                 label = newTagLabel,
+                                 line = newTagLineNum,
+                                 index = newTagIndex,
+                                 document_id = cur_doc_id,
+                                 rangySelection = rangySelection)
             newTag.save();
 
             return HttpResponseRedirect('/viewDocument?id='+cur_doc_id)
@@ -190,56 +159,40 @@ def createTag(request):
             print(e)
             return HttpResponseRedirect('/')
 
-
-# TODO: Check and simplify conditional flow (if / else)
 @login_required(redirect_field_name='', login_url='/')
 def upload(request):
     '''Handles Local file uploads'''
     if request.method == 'POST':
-        if not request.user.is_authenticated:
+        user = User.objects.get(username=request.user)
+        new_document = None
+
+        try:
+            new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
+        except:
             return HttpResponseRedirect('/')
 
-        user = User.objects.get(username=request.user)
-
-        new_document = None
-        try:
-            if request.FILES['uploadFile'] is not None:
-                new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
-
-        # just reroutes to homepage if try to upload nothing
-        # @TODO handle the null exception better
-        except KeyError:
-            if request.POST['uploadFile'] == '':
-                return HttpResponseRedirect('/')
-
+        # Not sure what new_document[0] means
         if new_document[0] == False and 'case_id' in request.POST:
             case = models.Case.objects.get(case_id=request.POST['case_id'])
             cur_case_id = case.case_id
             case_name = case.case_name
             existing_doc = models.Document.objects.get(doc_id = new_document[1])
             case.documents.add(existing_doc)
-            documents = get_docs_in_case(cur_case_id)
-            context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id, 'upload_fail':True}
+            context = {'documents': get_docs_in_case(cur_case_id),
+                       'case_name': case_name, 'case_id': cur_case_id,
+                       'upload_fail': True}
             return render(request, 'autoIntern/viewCase.html', context)
-
-        if new_document[0] == False:
+        elif new_document[0] == False:
             context = {'documents': get_documents(), 'cases': get_cases(request), 'upload_fail': True}
             return render(request, 'autoIntern/homePage.html', context)
-
-
-        if 'case_id' in request.POST:
+        elif 'case_id' in request.POST:
             case = models.Case.objects.get(case_id=request.POST['case_id'])
-            cur_case_id = case.case_id
             case.documents.add(new_document)
-            case_name = case.case_name
-            documents = get_docs_in_case(cur_case_id)
-            context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
-
+            context = {'documents': get_docs_in_case(cur_case_id),
+                       'case_name': case.case_name, 'case_id': case.case_id}
             return render(request, 'autoIntern/viewCase.html', context)
-
         else:
-            context = {'documents': get_documents(), 'cases' : get_cases(request)}
-            return render(request, 'autoIntern/homePage.html', context)
+            return HttpResponseRedirect('/')
     else:
         return HttpResponseRedirect('/')
 
@@ -248,7 +201,6 @@ def exportTags(request):
     ''' Exports tags associated with document'''
     # Tags to be exported:
     TAGS = ['company', 'doc_type', 'doc_date']
-
     if request.method == 'POST':
         try:
             path = request.POST['path']
@@ -290,7 +242,6 @@ def exportTags(request):
             elif 'json' in request.POST:
                 response = HttpResponse(js, content_type='application/javascript; charset=utf8')
                 response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.json"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
-
             else:
                 return HttpResponseRedirect('/')
 
@@ -300,24 +251,20 @@ def exportTags(request):
     else:
         return HttpResponseRedirect('/')
 
-
-# TODO: Alert user to a repeated case name (handles repeat)
 @login_required(redirect_field_name='', login_url='/')
 def createCase(request):
     currUser = User.objects.get(username=request.user)
-    new_case = None
-    name = request.POST['caseName']
-    case_exists = None
-    try:
-        case = models.Case.objects.get(case_name=name)
-        case_exists = True
-    except ObjectDoesNotExist:
-        case_exists = False
+    new_case_name = request.POST['caseName']
+    cases = models.Case.objects.all().filter(case_name=new_case_name)
+    while cases.count() != 0:
+        if new_case_name == request.POST['caseName']:
+            new_case_name += '(1)'
+        else:
+            new_int = int(new_case_name[-2]) + 1
+            new_case_name = new_case_name[:-3] + "(" + str(new_int) + ")"
+        cases = models.Case.objects.all().filter(case_name=new_case_name)
 
-    if case_exists == True:
-        new_case = models.Case(case_name=name+'(1)')
-    else:
-        new_case = models.Case(case_name = name)
+    new_case = models.Case(case_name=new_case_name)
 
     new_case.save()
     new_case.user_permissions.add(currUser)
@@ -325,13 +272,9 @@ def createCase(request):
     new_perm = models.Permissions(user=currUser, case=new_case, user_type=models.Permissions.MANAGER_USER)
     new_perm.save()
 
-    if request.user.is_authenticated:
-        context = {'documents': get_documents(), 'cases': get_cases(request)}
-    else:
-        context = {'userForm': UserForm()}
+    return HttpResponseRedirect('/')
 
-    return render(request, 'autoIntern/homePage.html', context)
-
+@login_required(redirect_field_name='', login_url='/')
 def addUsers(request):
     try:
         ids = request.POST.getlist('ids[]')
@@ -346,14 +289,14 @@ def addUsers(request):
             new_perm = models.Permissions(user=user, case=case, user_type=models.Permissions.BASE_USER)
             new_perm.save()
 
-        case_name = case.case_name
-        documents = get_docs_in_case(case_id)
-        context = {'documents': documents, 'case_name': case_name, 'case_id': case_id}
+        context = {'documents': get_docs_in_case(case_id),
+                   'case_name': case.case_name, 'case_id': case_id}
 
         return (viewCase(request))
     except:
         return HttpResponseRedirect('/')
 
+@login_required(redirect_field_name='', login_url='/')
 def removeUsers(request):
     try:
         ids = request.POST.getlist('ids[]')
@@ -367,20 +310,9 @@ def removeUsers(request):
 
             models.Permissions.objects.filter(case=case, user=user).delete()
 
-        case_name = case.case_name
-        documents = get_docs_in_case(case_id)
-        context = {'documents': documents, 'case_name': case_name, 'case_id': case_id}
+        context = {'documents': get_docs_in_case(case_id),
+                   'case_name': case.case_name, 'case_id': case_id}
 
         return (viewCase(request))
-
     except:
         return HttpResponseRedirect('/')
-
-def getDocumentHTMLToRender(doc_id):
-    '''returns the html to render for a given document and the associated tags'''
-    pass
-
-def jsonify(object):
-    if isinstance(object, QuerySet):
-        return mark_safe(serialize('json', object))
-    return mark_safe(simplejson.dumps(object))
