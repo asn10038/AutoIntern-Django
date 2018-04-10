@@ -2,6 +2,7 @@
 <head>
 {# Load the tag lib #}
 {% load bootstrap4 %}
+{% load staticfiles %}
 
 {# load css and js #}
 {% bootstrap_css %}
@@ -9,64 +10,11 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css">
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script>
 
-
 {# Display django.contrib.messages as Bootstrap alerts #}
 {% bootstrap_messages %}
 
 {# Load widget tweaks for front end convenience #}
 {% load widget_tweaks %}
-
-<style>
-/* Center the loader */
-#loader {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 1;
-  width: 150px;
-  height: 150px;
-  margin: -75px 0 0 -75px;
-  border: 16px solid #f3f3f3;
-  border-radius: 50%;
-  border-top: 16px solid blue;
-  border-right: 16px solid green;
-  border-bottom: 16px solid red;
-  border-left: 16px solid pink;
-  width: 120px;
-  height: 120px;
-  -webkit-animation: spin 2s linear infinite;
-  animation: spin 2s linear infinite;
-}
-
-@-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg); }
-  100% { -webkit-transform: rotate(360deg); }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Add animation to "page content" */
-.animate-bottom {
-  position: relative;
-  -webkit-animation-name: animatebottom;
-  -webkit-animation-duration: 1s;
-  animation-name: animatebottom;
-  animation-duration: 1s
-}
-
-@-webkit-keyframes animatebottom {
-  from { bottom:-100px; opacity:0 }
-  to { bottom:0px; opacity:1 }
-}
-
-@keyframes animatebottom {
-  from{ bottom:-100px; opacity:0 }
-  to{ bottom:0; opacity:1 }
-}
-</style>
 </head>
 
 <body>
@@ -118,18 +66,40 @@
   </div>
 </nav>
 
+<!-- Register Modal Window -->
+ <div class="modal" tabindex="-1" role="alertdialog" id="registerModal">
+   <div class="modal-dialog" role="alertdialog">
+     <div class="modal-content">
+       <div class="modal-header">
+         <h5 class="modal-title">Register</h5>
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true">&times;</span>
+         </button>
+       </div>
+       <div class="modal-body">
+         <form action="/register/" method="post">
+           {% csrf_token %}
+           {% for field in userForm %}
+           <div class="form-group">
+             {{ field.errors }}
+             {{ field }}
+             {% if field.help_text %}
+             <p class="help">{{ field.help_text|safe }}</p>
+             {% endif %}
+           </div>
+           {% endfor %}
+           <button type="submit" class="btn btn-outline-primary">Register</button>
+         </form>
+       </div>
+       <div class="modal-footer">
+         <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+       </div>
+     </div>
+   </div>
+ </div>
+
 <!-- Actual Content of the Page -->
 {% block content %}
 {% endblock %}
-<div id="loader" hidden="true"></div>
-<script>
-function showLoader() {
-    var x = document.getElementById("loader");
-    if (!x.hidden) {
-    } else {
-        x.hidden = false ;
-    }
-}
-</script>
 </body>
 </html>
