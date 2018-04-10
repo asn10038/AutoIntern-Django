@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -6,12 +5,10 @@ from autoIntern.models import Document
 from django.core.exceptions import ObjectDoesNotExist
 
 
-
 def GetDocumentByHeader( doc_file, contr_user):
     content = doc_file.read()
     header = str(content,'utf-8')
     header = header.split('\n')[:45]
-    # print(header)
     company = ''
     doc_type = ''
     doc_date = ''
@@ -35,10 +32,23 @@ def GetDocumentByHeader( doc_file, contr_user):
     else:
         return(False, doc_id)
 
-
 def DNE_Doc_or_Fail(doc_id):
     try:
         doc = Document.objects.get(doc_id= doc_id)
         return(False)
     except ObjectDoesNotExist:
         return(True)
+
+def get_documents():
+    return models.Document.objects.all()
+
+def get_cases(request):
+    return models.Case.objects.all().filter(user_permissions=request.user)
+
+def get_docs_in_case(case_id):
+    case = models.Case.objects.get(case_id = case_id)
+    documents = []
+
+    for document in case.documents.all():
+        documents.append(document)
+    return documents
