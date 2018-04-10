@@ -1,9 +1,8 @@
 from django.db import models
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from autoIntern.models import Document
+from autoIntern.models import Document, Case
 from django.core.exceptions import ObjectDoesNotExist
-
 
 def GetDocumentByHeader( doc_file, contr_user):
     content = doc_file.read()
@@ -40,13 +39,13 @@ def DNE_Doc_or_Fail(doc_id):
         return(True)
 
 def get_documents():
-    return models.Document.objects.all()
+    return Document.objects.all()
 
 def get_cases(request):
-    return models.Case.objects.all().filter(user_permissions=request.user)
+    return Case.objects.all().filter(user_permissions=request.user)
 
 def get_docs_in_case(case_id):
-    case = models.Case.objects.get(case_id = case_id)
+    case = Case.objects.get(case_id = case_id)
     documents = []
 
     for document in case.documents.all():

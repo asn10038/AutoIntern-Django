@@ -58,7 +58,7 @@ class RegisterFormTest(TestCase):
             'username': 'Test',
             'password': 'test'
         })
-        self.assertEqual(response.status_code, 200)
+        response = self.client.get("/")
         self.assertTrue('Hello' in str(response.content))
 
     def test_user_upload_view(self):
