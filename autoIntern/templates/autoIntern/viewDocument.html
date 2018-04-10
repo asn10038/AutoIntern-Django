@@ -3,27 +3,62 @@
 {% if user.is_authenticated %}
 {% if file is null %}
 {% else %}
-<div class="container">
-  <button class="btn btn-primary btn-lg mx-5 my-2 btn-block" data-toggle="modal" type="button" data-target="#exportTags">Export Tags</button>
+<!-- Rangy Includes -->
+<script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/rangy/1.3.0/rangy-core.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://rawgit.com/timdown/rangy/master/lib/rangy-highlighter.js"></script>
+<script type="text/javascript" charset="utf8" src="https://rawgit.com/timdown/rangy/master/lib/rangy-classapplier.js"></script>
+<script type="text/javascript" charset="utf8" src="https://rawgit.com/timdown/rangy/master/lib/rangy-serializer.js"></script>
+<!-- Custom Auto Intern Scripts and CSS-->
+<!-- IMPORTANT YOU CAN ONLY ACCESS THESE FILES IF YOU HAVE ACCESS TO GOOGLE BUCKET NEED TO LOG IN BEFORE -->
+<script type="text/javascript" charset="utf8" src="http://storage.cloud.google.com/autointern-dev/static/autoInternBase.js"></script>
+<link rel="stylesheet" type="text/css" href="http://storage.cloud.google.com/autointern-dev/static/autoInternBase.css">
 
+<div class="container">
+  <div class="col-md-4 text-center">
+    <button class="btn btn-primary btn-lg mx-5 my-2" data-toggle="modal" type="button" data-target="#exportTags">Export Tags</button>
+  </div>
+  <!-- Make tag modal window -->
+  <div class="modal" tabindex="-1" role="alertdialog" id="makeTagModal">
+    <div class="modal-dialog" role="alertdialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Create Tag</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form action="/createTag/" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <p name="newTagContent" id="newTagContent"> <strong></strong> </p>
+            <p name="currentDocumentId" id="currentDocumentId"> <strong></strong> </p>
+
+            <input hidden="true" type="text" name="newTagContent" id="newTagContentForm"> <strong></strong> </input>
+            <input hidden="true" type="text" name="currentDocumentId" id="currentDocumentIdForm"> <strong></strong> </input>
+            <input hidden="true" type="text" name="serializedRangySelection" id="serializedRangySelection"> <strong></strong> </input>
+            <!--&lt;!&ndash; Maybe Turn into DocumentModelForm at some point &ndash;&gt;-->
+            <input class="form-control mr-sm-2" type="text" placeholder="Label" aria-label="newTagLabel" name="newTagLabel">
+            <button type="submit" class="btn btn-outline-primary">Create</button>
+          </form>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Hidden element for tag serialization -->
+  <p id="serializedTags" hidden="true">
+    {{ tags }}
+  </p>
   <!-- Authenticated and there is a file -->
   <div class="m-5">
     {{ file | safe }}
   </div>
+
   {% endif %}
-  {% else %}
-  <!-- Generic Homepage for not logged in User -->
-  <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
-    <div class="col-md-5 p-lg-5 mx-auto my-5">
-      <h1 class="display-4 font-weight-normal">Auto Intern</h1>
-      <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
-      <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
-    </div>
-    <div class="product-device box-shadow d-none d-md-block"></div>
-    <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
-  </div>
-</div>
-<!-- Export modal -->
+  <!-- Export modal -->
 <div class="modal" tabindex="-1" role="alertdialog" id="exportTags">
   <div class="modal-dialog" role="alertdialog">
     <div class="modal-content">
@@ -57,6 +92,18 @@
         <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>
+  </div>
+</div>
+  {% else %}
+  <!-- Generic Homepage for not logged in User -->
+  <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
+    <div class="col-md-5 p-lg-5 mx-auto my-5">
+      <h1 class="display-4 font-weight-normal">Auto Intern</h1>
+      <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
+      <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
+    </div>
+    <div class="product-device box-shadow d-none d-md-block"></div>
+    <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
   </div>
 </div>
 {% endif %}

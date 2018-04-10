@@ -10,13 +10,14 @@ from autoIntern.parse_identifiers import GetDocumentByHeader
 import json
 import csv
 from django.core.exceptions import ObjectDoesNotExist
-
-
+from django.core.serializers import serialize
+from django.db.models.query import QuerySet
+from django.template import Library
 
 def index(request):
     # Check if user is logged in
     if request.user.is_authenticated:
-        context = {'doc_ids': get_doc_ids(), 'zipped_data' : get_case_ids(request)}
+        context = {'documents': get_documents(), 'cases' : get_cases(request)}
     else:
         context = {'userForm': UserForm()}
 
@@ -35,7 +36,7 @@ def userLogin(request):
         # User successfully authenticated
         if user is not None:
             login(request, user)
-            context = {'doc_ids': get_doc_ids(), 'zipped_data' : get_case_ids(request)}
+            context = {'documents': get_documents(), 'cases' : get_cases(request)}
         return render(request, 'autoIntern/homePage.html', context)
 
 
@@ -59,42 +60,22 @@ def register(request):
 
 
 # TODO: Move
-def get_doc_ids():
-    documents = models.Document.objects.all()
-
-    doc_ids = []
-
-    for document in documents:
-        doc_ids.append(document.doc_id)
-
-    return doc_ids
+def get_documents():
+    return models.Document.objects.all()
 
 # TODO: Move
-def get_case_ids(request):
-    userperms = models.Case.objects.all().filter(user_permissions=request.user)
-
-    case_ids = []
-    case_names = []
-
-    for perm in userperms:
-
-        case_ids.append(perm.case_id)
-        case_names.append(perm.case_name)
-
-    return zip(case_ids, case_names)
-
+def get_cases(request):
+    return models.Case.objects.all().filter(user_permissions=request.user)
 
 # TODO: Move
 def get_docs_in_case(case_id):
-    case = models.Case.objects.get(case_id =case_id)
-    doc_ids = []
+    case = models.Case.objects.get(case_id = case_id)
+    documents = []
 
-    for doc in case.documents.all():
-        doc_ids.append(doc.doc_id)
+    for document in case.documents.all():
+        documents.append(document)
 
-    return doc_ids
-
-
+    return documents
 
 @login_required(redirect_field_name='', login_url='/')
 def viewDocument(request):
@@ -102,31 +83,115 @@ def viewDocument(request):
         try:
             cur_doc_id = request.GET['id']
             document = models.Document.objects.get(doc_id=cur_doc_id)
-            file = document.file.read().decode('utf-8')
-            context = {'file': file}
+
+            # TODO change the way the file is loaded to accomodate highlighting
+            raw = document.file.read().decode('utf-8')
+            file=''
+            tags = []
+            for line in raw.split('\n'):
+                # for line in content:
+                if ".js" not in line and ".css" not in line:
+                    file += line
+            try:
+                tags = models.Data.objects.filter(document__doc_id=cur_doc_id)
+            except Exception as e:
+                print(e)
+            # jsonTags = jsonify(tags)
+            try:
+                jsonTags = serialize('json', tags)
+            except Exception as e:
+                print(e)
+            context = {'file': file, 'tags':jsonTags}
             return render(request, 'autoIntern/viewDocument.html', context)
         except:
-            context = {'doc_ids': get_doc_ids()}
+            context = {'documents': get_documents()}
             return render(request, 'autoIntern/viewDocument.html', context)
 
 
 @login_required(redirect_field_name='', login_url='/')
 def viewCase(request):
-    if request.method == 'GET':
-        try:
+    try:
+        if request.method == 'GET':
             cur_case_id = request.GET['id']
-            case = models.Case.objects.get(case_id=cur_case_id)
-            case_name = case.case_name
-            documents = get_docs_in_case(cur_case_id)
-            context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
+        if request.method == 'POST':
+            cur_case_id = request.POST['case_id']
 
-            return render(request, 'autoIntern/viewCase.html', context)
+        case = models.Case.objects.get(case_id=cur_case_id)
+        user = User.objects.get(username=request.user)
 
-        except:
-            print ("EXCEPT VIEWCASE")
+        user_perms = models.Permissions.objects.all().filter(case=case, user=user)
+
+        #If user types in case ID, redirect
+        if user_perms.count() == 0:
+            return HttpResponseRedirect('/')
+
+        case_name = case.case_name
+        documents = get_docs_in_case(cur_case_id)
+        context = {'documents': documents, 'case_name': case_name, 'case_id': cur_case_id}
+
+        # If manager, add to context
+        if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
+            context['is_manager'] = True
+            users = User.objects.all()
+            case_users_perms = models.Permissions.objects.filter(case=case)
+            case_usernames = []
+            case_users = []       # List of users that can be removed
+
+            for u in case_users_perms:
+                if u.user_type != models.Permissions.MANAGER_USER:
+                    case_users.append(u.user)
+                case_usernames.append(u.user.username)
+
+            # list = list of users not currently in case
+            list = [user for user in users if user.username not in case_usernames and user.username != 'admin']
+            context['users'] = list
+            context['case_users'] = case_users
+            
+        else:
+            context['is_manager'] = False
+
+        return render(request, 'autoIntern/viewCase.html', context)
+
+    except Exception as e:
+        print(e)
+        return HttpResponseRedirect('/')
+
+
+@login_required(redirect_field_name='', login_url='/')
+def createTag(request):
+    if request.method=='POST':
+        try:
+            cur_doc_id = request.POST['currentDocumentId']
+
+            currentUser = request.user
+            newTagLabel = request.POST['newTagLabel']
+            newTagValue = request.POST['newTagContent']
+            # newTagIndex = request.POST['newTagIndex']
+            # newTagLineNum = request.POST['newTagLineNum']
+            newTagIndex = newTagLineNum = 420
+            rangySelection = request.POST['serializedRangySelection']
+
+
+            document = models.Document.objects.get(doc_id=cur_doc_id)
+
+            newTag = models.Data(creator_id = currentUser,
+                          value = newTagValue,
+                          label = newTagLabel,
+                          line = newTagLineNum,
+                          index = newTagIndex,
+                          document_id = cur_doc_id,
+                          rangySelection = rangySelection)
+            newTag.save();
+
+            return HttpResponseRedirect('/viewDocument?id='+cur_doc_id)
+
+        except Exception as e:
+            print("EXCEPTION CREATING TAG")
+            print(e)
             return HttpResponseRedirect('/')
 
 
+# TODO: Check and simplify conditional flow (if / else)
 @login_required(redirect_field_name='', login_url='/')
 def upload(request):
     '''Handles Local file uploads'''
@@ -158,7 +223,7 @@ def upload(request):
             return render(request, 'autoIntern/viewCase.html', context)
 
         if new_document[0] == False:
-            context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request), 'upload_fail': True}
+            context = {'documents': get_documents(), 'cases': get_cases(request), 'upload_fail': True}
             return render(request, 'autoIntern/homePage.html', context)
 
 
@@ -173,12 +238,11 @@ def upload(request):
             return render(request, 'autoIntern/viewCase.html', context)
 
         else:
-            context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
+            context = {'documents': get_documents(), 'cases' : get_cases(request)}
             return render(request, 'autoIntern/homePage.html', context)
     else:
         return HttpResponseRedirect('/')
 
-# @Todo make this work again
 @login_required(redirect_field_name='', login_url='/')
 def exportTags(request):
     ''' Exports tags associated with document'''
@@ -262,8 +326,61 @@ def createCase(request):
     new_perm.save()
 
     if request.user.is_authenticated:
-        context = {'doc_ids': get_doc_ids(), 'zipped_data': get_case_ids(request)}
+        context = {'documents': get_documents(), 'cases': get_cases(request)}
     else:
         context = {'userForm': UserForm()}
 
     return render(request, 'autoIntern/homePage.html', context)
+
+def addUsers(request):
+    try:
+        ids = request.POST.getlist('ids[]')
+        case_id = request.POST['case_id']
+
+        case = models.Case.objects.get(case_id=case_id)
+
+        for id in ids:
+            user = User.objects.get(username=id)
+            case.user_permissions.add(user)
+
+            new_perm = models.Permissions(user=user, case=case, user_type=models.Permissions.BASE_USER)
+            new_perm.save()
+
+        case_name = case.case_name
+        documents = get_docs_in_case(case_id)
+        context = {'documents': documents, 'case_name': case_name, 'case_id': case_id}
+
+        return (viewCase(request))
+    except:
+        return HttpResponseRedirect('/')
+
+def removeUsers(request):
+    try:
+        ids = request.POST.getlist('ids[]')
+        case_id = request.POST['case_id']
+
+        case = models.Case.objects.get(case_id=case_id)
+
+        for id in ids:
+            user = User.objects.get(username=id)
+            case.user_permissions.remove(user)
+
+            models.Permissions.objects.filter(case=case, user=user).delete()
+
+        case_name = case.case_name
+        documents = get_docs_in_case(case_id)
+        context = {'documents': documents, 'case_name': case_name, 'case_id': case_id}
+
+        return (viewCase(request))
+
+    except:
+        return HttpResponseRedirect('/')
+
+def getDocumentHTMLToRender(doc_id):
+    '''returns the html to render for a given document and the associated tags'''
+    pass
+
+def jsonify(object):
+    if isinstance(object, QuerySet):
+        return mark_safe(serialize('json', object))
+    return mark_safe(simplejson.dumps(object))
