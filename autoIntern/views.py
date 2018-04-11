@@ -146,8 +146,8 @@ def createTag(request):
             newTag = models.Data(creator_id = currentUser,
                                  value = newTagValue,
                                  label = newTagLabel,
-                                 line = newTagLineNum,
-                                 index = newTagIndex,
+                                 line = newTagLineNum, #
+                                 index = newTagIndex, #
                                  document_id = cur_doc_id,
                                  rangySelection = rangySelection)
             newTag.save();

@@ -47,8 +47,8 @@ class Data(models.Model):
     create_datetime = models.DateTimeField(auto_now_add=True)
     value = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
-    line = models.CharField(max_length=255)
-    index = models.CharField(max_length=255)
+    line = models.CharField(max_length=255) #
+    index = models.CharField(max_length=255) #
     rangySelection = models.CharField(max_length=255) #serialized selection object from rangy plugin
     current = models.NullBooleanField(blank=True, null=True)
 
