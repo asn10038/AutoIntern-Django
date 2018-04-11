@@ -68,7 +68,9 @@ def viewDocument(request):
             tags = []
             for line in raw.split('\n'):
                 # Can we remove the new body css this way too?
-                if ".js" not in line and ".css" not in line:
+                if "<body" in line and "style=" in line:
+                    file += '<body>'
+                elif ".js" not in line and ".css" not in line:
                     file += line
             try:
                 tags = models.Data.objects.filter(document__doc_id=cur_doc_id)
