@@ -146,8 +146,8 @@ def createTag(request):
             newTag = models.Data(creator_id = currentUser,
                                  value = newTagValue,
                                  label = newTagLabel,
-                                 line = newTagLineNum,
-                                 index = newTagIndex,
+                                 line = newTagLineNum, #
+                                 index = newTagIndex, #
                                  document_id = cur_doc_id,
                                  rangySelection = rangySelection)
             newTag.save();
@@ -167,7 +167,10 @@ def upload(request):
         new_document = None
 
         try:
-            new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
+            if 'public' in request.POST:
+                new_document = GetDocumentByHeader(request.FILES['uploadFile'], user, False)
+            else:
+                new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
         except:
             return HttpResponseRedirect('/')
 
@@ -187,7 +190,8 @@ def upload(request):
             return render(request, 'autoIntern/homePage.html', context)
         elif 'case_id' in request.POST:
             case = models.Case.objects.get(case_id=request.POST['case_id'])
-            case.documents.add(new_document)
+            case.documents.add(new_document[1])
+            cur_case_id = case.case_id
             context = {'documents': get_docs_in_case(cur_case_id),
                        'case_name': case.case_name, 'case_id': case.case_id}
             return render(request, 'autoIntern/viewCase.html', context)
