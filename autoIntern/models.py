@@ -11,6 +11,7 @@ class Document(models.Model):
     doc_date = models.CharField(max_length=255)
     upload_id = models.ForeignKey(User, on_delete=models.CASCADE)
     upload_datetime = models.DateTimeField(auto_now_add=True, editable=True)
+    public = models.BooleanField(default=True)
     file = models.FileField(upload_to='document_folder')
 
     def get_identifiers(self):
@@ -40,15 +41,16 @@ class Case(models.Model):
 
 
 class Data(models.Model):
-    data_id = models.CharField(max_length=255, primary_key=True)
+    data_id = models.AutoField(primary_key=True)
     creator_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    # case = models.ForeignKey(Case, on_delete=models.CASCADE)
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     create_datetime = models.DateTimeField(auto_now_add=True)
     value = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
-    line = models.CharField(max_length=255)
-    index = models.CharField(max_length=255)
+    line = models.CharField(max_length=255) #
+    index = models.CharField(max_length=255) #
+    rangySelection = models.CharField(max_length=255) #serialized selection object from rangy plugin
     current = models.NullBooleanField(blank=True, null=True)
 
 class Permissions(models.Model):

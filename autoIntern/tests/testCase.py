@@ -1,5 +1,3 @@
-# creating test for storage of documents and data in cases
-
 from autoIntern.models import Document
 from autoIntern.models import User
 from autoIntern.forms import UserForm
@@ -10,7 +8,7 @@ from django.core.files.storage import default_storage
 from django.core.files import File
 import os
 from django.conf import settings
-from autoIntern.views.views import get_docs_in_case
+from autoIntern.helpers import get_docs_in_case
 
 
 class CaseModelTest(TestCase):
@@ -43,12 +41,10 @@ class CaseModelTest(TestCase):
     def test_doc_in_case(self):
         case = Case.objects.get(case_name = 'Case Test')
         docs = get_docs_in_case( case.case_id)
-        self.assertEquals( docs,['APPLE_INC.10-K.20171103'] )
+        self.assertEquals( docs[0].doc_id,'APPLE_INC.10-K.20171103' )
 
     def test_users_in_case(self):
         case = Case.objects.get(case_name = 'Case Test')
         users = case.user_permissions.all()[0]
         tester = User.objects.get(username='Test')
         self.assertEquals(users, tester )
-
-

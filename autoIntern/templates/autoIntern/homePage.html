@@ -1,57 +1,107 @@
 {% extends "autoIntern/base.html" %}
+
 {% block content %}
 
 {% if user.is_authenticated %}
 <!-- what the user sees if they are logged in -->
-<!-- Probably will be the filesystem or cases or something like that -->
-
-<!-- For now going to show an upload button that allows to upload local Files -->
-<!-- as well as scrape a url for the content and add it to the file system -->
 <ul class="nav nav-tabs mx-3 my-3">
   <li class="nav-item">
-    <a class="nav-link" href="#cases" data-target="#cases" data-toggle="tab">Cases</a>
+    <a class="nav-link active" href="#cases" data-target="#cases" data-toggle="tab">Cases</a>
   </li>
   <li class="nav-item">
     <a class="nav-link" href="#documents" data-target="#documents" data-toggle="tab">Documents</a>
   </li>
 </ul>
 
+{% if upload_fail %}
+<script>alert('That Document has already been uploaded')</script>
+{% endif%}
+
 <div id="case_docs_tabContent" class="tab-content">
-  <div class="tab-pane fade in active" id="cases">
-    <button data-toggle="modal" data-target="#caseModal" type="button"  class="btn btn-primary btn-lg mx-5 my-2 btn-block">Create Case</button>
-    <table class="m-5 table">
-      <thead>
-      <tr>
-        <th scope="col"> Cases </th>
-      </tr>
-      </thead>
-      <tbody>
-      {% for case_id,case_name in zipped_data %}
-      <tr>
-        <td onClick="showLoader()"><a href="/viewCase?id={{ case_id }}"> {{ case_name }}</a></td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  <div class="tab-pane active" id="cases">
+    <div class="col-md-4 text-center">
+      <button data-toggle="modal" data-target="#caseModal" type="button"  class="btn btn-primary btn-lg mx-5 my-2 ">Create Case</button>
+    </div>
+    <div class="container">
+      <table id="caseTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th> Case Name </th>
+            <th> Created </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for case in cases %}
+          <tr>
+            <th>
+              <a href="/viewCase?id={{ case.case_id }}">
+                {{ case.case_name }}
+              </a>
+            </th>
+            <th>
+              {{ case.create_datetime }}
+            </th>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div class="tab-pane fade" id="documents">
-    <button data-toggle="modal" type="button" data-target="#uploadModal" class="btn btn-primary btn-lg btn-block mx-5 my-2">Upload Document</button>
-    <table class="table m-5">
-      <thead>
-      <tr>
-        <th scope="col">Documents </th>
-      </tr>
-      </thead>
-      <tbody>
-      {% for doc_id in doc_ids %}
-      <tr>
-        <td onclick="showLoader()"> <a href="/viewDocument?id={{ doc_id }}"> {{ doc_id }}</a></td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  <div class="tab-pane" id="documents">
+    <div class="col-md-4 text-center">
+      <button data-toggle="modal" type="button" data-target="#uploadModal" class="btn btn-primary btn-lg mx-5 my-2">Upload Document</button>
+    </div>
+    <div class="container">
+      <table id="documentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th> Company </th>
+            <th> Document Type </th>
+            <th> Document Date </th>
+            <th> Uploaded </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for document in documents %}
+          <tr>
+            <th>
+              <a href="/viewDocument?id={{ document.doc_id }}">
+                {{ document.company }}
+              </a>
+            </th>
+            <th>
+              {{ document.doc_type }}
+            </th>
+            <th>
+              {{ document.doc_date }}
+            </th>
+            <th>
+              {{ document.upload_datetime }}
+            </th>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
+
+<script>
+  $(document).ready( function () {
+  <!-- Not sure what this does but it adjusts the columns -->
+  $('a[data-toggle="tab"]').on( 'shown.bs.tab', function (e) {
+  $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+  } );
+  $('#documentTable').DataTable( {
+  scrollY: 500,
+  scrollCollapse: true,
+  paging: false});
+  $('#caseTable').DataTable( {
+  scrollY: 500,
+  scrollCollapse: true,
+  paging: false});
+  });
+</script>
 
 <!-- Upload modal -->
 <div class="modal" tabindex="-1" role="alertdialog" id="uploadModal">
@@ -66,7 +116,6 @@
       <div class="modal-body">
         <form action="/upload/" method="post" enctype="multipart/form-data">
           {% csrf_token %}
-          <!-- Maybe Turn into DocumentModelForm at some point -->
           <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile">
           <button type="submit" class="btn btn-outline-primary">Upload</button>
         </form>
@@ -105,7 +154,7 @@
   <div class="col-md-5 p-lg-5 mx-auto my-5">
     <h1 class="display-4 font-weight-normal">Auto Intern</h1>
     <p class="lead font-weight-normal"> One stop shop for collaboration and innovation</p>
-    <a class="btn btn-outline-secondary" href="#">Coming Relatively Soon</a>
+    <a class="btn btn-outline-secondary">Coming Relatively Soon</a>
   </div>
   <div class="product-device box-shadow d-none d-md-block"></div>
   <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>
