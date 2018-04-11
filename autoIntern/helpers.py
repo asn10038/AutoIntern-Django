@@ -4,7 +4,7 @@ from django.core.files.base import ContentFile
 from autoIntern.models import Document, Case
 from django.core.exceptions import ObjectDoesNotExist
 
-def GetDocumentByHeader( doc_file, contr_user):
+def GetDocumentByHeader( doc_file, contr_user, public=True):
     content = doc_file.read()
     header = str(content,'utf-8')
     header = header.split('\n')[:45]
@@ -24,10 +24,11 @@ def GetDocumentByHeader( doc_file, contr_user):
 
     doc_id = company+'.'+ doc_type + '.' + doc_date + '.txt'
     if DNE_Doc_or_Fail(doc_id):
-        new_doc = Document(company= company , doc_type= doc_type, doc_date= doc_date,
-                                doc_id =  doc_id, file = default_storage.save('static/document_folder/{0}'.format(doc_id),
-                                ContentFile(content)), upload_id = contr_user)
-        return(new_doc)
+        new_doc = Document(company=company, doc_type=doc_type,
+                           doc_date=doc_date, doc_id=doc_id, file=default_storage.save('static/document_folder/{0}'.format(doc_id),ContentFile(content)),
+                           upload_id = contr_user, public=public)
+        new_doc.save()
+        return(True, new_doc)
     else:
         return(False, doc_id)
 
@@ -39,7 +40,7 @@ def DNE_Doc_or_Fail(doc_id):
         return(True)
 
 def get_documents():
-    return Document.objects.all()
+    return Document.objects.all().filter(public=True)
 
 def get_cases(request):
     return Case.objects.all().filter(user_permissions=request.user)

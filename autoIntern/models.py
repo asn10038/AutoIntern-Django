@@ -11,6 +11,7 @@ class Document(models.Model):
     doc_date = models.CharField(max_length=255)
     upload_id = models.ForeignKey(User, on_delete=models.CASCADE)
     upload_datetime = models.DateTimeField(auto_now_add=True, editable=True)
+    public = models.BooleanField(default=True)
     file = models.FileField(upload_to='document_folder')
 
     def get_identifiers(self):
