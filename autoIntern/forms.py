@@ -11,6 +11,9 @@ class UserForm(ModelForm):
         fields = {'username': '', 'email': '',
                   'first_name': '', 'last_name': '',
                   'password': ''}
+        widgets = {
+            'password': forms.PasswordInput()
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,15 +23,16 @@ class UserForm(ModelForm):
         self.fields['email'].widget.attrs.update({'type': 'email',
                                                   'class' : 'form-control',
                                                   'placeholder' : 'Enter Email'})
+        self.fields['password'].widget.attrs.update({'type':'Password',
+                                                     'class' : 'form-control',
+                                                     'placeholder' : 'Password'})
         self.fields['first_name'].widget.attrs.update({'type': 'text',
                                                        'class': 'form-control',
                                                        'placeholder' : 'First Name'})
         self.fields['last_name'].widget.attrs.update({'type': 'text',
                                                       'class': 'form-control',
                                                       'placeholder': 'Last Name'})
-        self.fields['password'].widget.attrs.update({'type': 'password',
-                                                      'class': 'form-control',
-                                                      'placeholder': 'Password'})
+
     def validate_password(self):
         pass
 
