@@ -36,5 +36,15 @@ class CreateTagTest(TestCase):
             'newTagLabel' : 'testLabel',
             'newTagContent' : 'testValue',
             'newTagLineNum' : '4',
-            'newTagIndex' : '24'
+            'newTagIndex' : '24',
+            'serializedRangySelection' : '0/0/17/1/1/1/1/0/2/1/13/29/2:0,0/0/17/1/1/1/1/0/2/1/13/29/2:7'
         })
+        assert response.status_code == 302
+
+    def test_viewTag(self):
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
+            'password': 'test'
+        })
+        response = self.client.get("/viewDocument?id=APPLE_INC.10-K.20171103")
+        self.assertTrue('highlight' in str(response.content))

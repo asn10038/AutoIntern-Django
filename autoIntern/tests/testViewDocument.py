@@ -32,6 +32,7 @@ class ViewDocumentTest(TestCase):
             'username': 'Test',
             'password': 'test'
         })
+        response = self.client.get("/")
         self.assertTrue('APPLE_INC.10-K.20171103' in str(response.content))
 
 
