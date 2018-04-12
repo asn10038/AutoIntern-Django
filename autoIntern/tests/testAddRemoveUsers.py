@@ -16,7 +16,29 @@ class AddUsersTest(TestCase):
         })
         if form.is_valid():
             form.save()
-        user = User.objects.get(username="Manager")
+        Manager = User.objects.get(username="Manager")
+
+        form = UserForm({
+            'username': 'BaseUser',
+            'email': 'BaseUser@test.com',
+            'first_name': 'BaseUser',
+            'last_name': 'BaseUser',
+            'password': 'BaseUser'
+        })
+        if form.is_valid():
+            form.save()
+        BaseUser = User.objects.get(username="BaseUser")
+
+        form = UserForm({
+            'username': 'Test1',
+            'email': 'test1@test.com',
+            'first_name': 'test1',
+            'last_name': 'test1',
+            'password': 'test1'
+        })
+        if form.is_valid():
+            form.save()
+        user1 = User.objects.get(username="Test1")
 
         form = UserForm({
             'username': 'Test2',
@@ -29,31 +51,15 @@ class AddUsersTest(TestCase):
             form.save()
         user2 = User.objects.get(username="Test2")
 
-        form = UserForm({
-            'username': 'Test3',
-            'email': 'test3@test.com',
-            'first_name': 'test3',
-            'last_name': 'test3',
-            'password': 'test3'
-        })
-        if form.is_valid():
-            form.save()
-        user3 = User.objects.get(username="Test3")
-
-        form = UserForm({
-            'username': 'Test4',
-            'email': 'test4@test.com',
-            'first_name': 'test4',
-            'last_name': 'test4',
-            'password': 'test4'
-        })
-        if form.is_valid():
-            form.save()
-        user4 = User.objects.get(username="Test4")
 
         case = Case(case_name='Case Test', case_id=999999)
-
         case.save()
+
+        managerPerm = Permissions(case=case, user=Manager, user_type=Permissions.MANAGER_USER)
+        managerPerm.save()
+
+        userPerm = Permissions(case=case, user=BaseUser, user_type=Permissions.BASE_USER)
+        userPerm.save()
 
 
     def testAddRemoveUsers(self):
@@ -63,37 +69,39 @@ class AddUsersTest(TestCase):
         })
 
         case = Case.objects.get(case_id=999999)
+        user1 = User.objects.get(username="Test1")
         user2 = User.objects.get(username="Test2")
-        user3 = User.objects.get(username="Test3")
 
         response = self.client.post('/addUsers/', {
             'case_id': str(case.case_id),
-            'ids[]': (str(user2.username), str(user3.username)),
+            'ids[]': (str(user1.username), str(user2.username)),
         })
 
+        self.assertTrue(Permissions.objects.filter(case=case, user=user1).exists())
+        self.assertTrue(Permissions.objects.filter(case=case, user=user2).exists())
+
+        perm1 = Permissions.objects.all().get(case=case, user=user1)
         perm2 = Permissions.objects.all().get(case=case, user=user2)
-        perm3 = Permissions.objects.all().get(case=case, user=user3)
 
 
         # Testing users properly added
+        self.assertTrue(user1 in case.user_permissions.all())
+        self.assertTrue(perm1.user_type == Permissions.BASE_USER)
+
         self.assertTrue(user2 in case.user_permissions.all())
         self.assertTrue(perm2.user_type == Permissions.BASE_USER)
 
-        self.assertTrue(user3 in case.user_permissions.all())
-        self.assertTrue(perm3.user_type == Permissions.BASE_USER)
-
         response = self.client.post('/removeUsers/', {
             'case_id': str(case.case_id),
-            'ids[]': (str(user2.username), str(user3.username)),
+            'ids[]': (str(user1.username), str(user2.username)),
         })
 
-
         # Testing users properly removed
+        self.assertFalse(user1 in case.user_permissions.all())
         self.assertFalse(user2 in case.user_permissions.all())
-        self.assertFalse(user3 in case.user_permissions.all())
 
+        self.assertTrue(Permissions.objects.all().filter(case=case, user=user1).count() == 0)
         self.assertTrue(Permissions.objects.all().filter(case=case, user=user2).count() == 0)
-        self.assertTrue(Permissions.objects.all().filter(case=case, user=user3).count() == 0)
 
 
     def testAddInvalidCase(self):
@@ -102,12 +110,12 @@ class AddUsersTest(TestCase):
             'password': 'Manager'
         })
 
+        user1 = User.objects.get(username="Test1")
         user2 = User.objects.get(username="Test2")
-        user3 = User.objects.get(username="Test3")
 
         response = self.client.post('/addUsers/', {
             'case_id': 'INVALID',
-            'ids[]': (str(user2.username), str(user3.username)),
+            'ids[]': (str(user1.username), str(user2.username)),
         })
 
         self.assertTrue("/" == response.url)
@@ -119,29 +127,48 @@ class AddUsersTest(TestCase):
             'password': 'Manager'
         })
 
+        user1 = User.objects.get(username="Test1")
         user2 = User.objects.get(username="Test2")
-        user3 = User.objects.get(username="Test3")
 
         response = self.client.post('/removeUsers/', {
             'case_id': 'INVALID',
-            'ids[]': (str(user2.username), str(user3.username)),
+            'ids[]': (str(user1.username), str(user2.username)),
         })
 
         self.assertTrue("/" == response.url)
 
 
-    def testRemoveUserNotInCase(self):
+    def testUserAttemptsAdd(self):
         response = self.client.post("/userLogin/", {
-            'username': 'Manager',
-            'password': 'Manager'
+            'username': 'BaseUser',
+            'password': 'BaseUser'
         })
 
         case = Case.objects.get(case_id=999999)
-        user4 = User.objects.get(username="Test4")
+        user1 = User.objects.get(username="Test1")
+        user2 = User.objects.get(username="Test2")
+
+        response = self.client.post('/addUsers/', {
+            'case_id': str(case.case_id),
+            'ids[]': (str(user1.username), str(user2.username)),
+        })
+
+        self.assertTrue("/" == response.url)
+
+
+    def testUserAttemptsRemove(self):
+        response = self.client.post("/userLogin/", {
+            'username': 'BaseUser',
+            'password': 'BaseUser'
+        })
+
+        case = Case.objects.get(case_id=999999)
+        user1 = User.objects.get(username="Test1")
+        user2 = User.objects.get(username="Test2")
 
         response = self.client.post('/removeUsers/', {
             'case_id': str(case.case_id),
-            'ids[]': (str(user4.username),),
+            'ids[]': (str(user1.username), str(user2.username)),
         })
 
         self.assertTrue("/" == response.url)

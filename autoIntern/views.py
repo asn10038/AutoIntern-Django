@@ -287,6 +287,11 @@ def addUsers(request):
         case_id = request.POST['case_id']
 
         case = models.Case.objects.get(case_id=case_id)
+        currUser = User.objects.get(username=request.user)
+
+        # If non-manager tries to call function => shouldn't happen since button only seen by managers
+        if models.Permissions.objects.get(case=case, user=currUser).user_type != models.Permissions.MANAGER_USER:
+            return HttpResponseRedirect('/')
 
         for id in ids:
             user = User.objects.get(username=id)
@@ -309,6 +314,11 @@ def removeUsers(request):
         case_id = request.POST['case_id']
 
         case = models.Case.objects.get(case_id=case_id)
+        currUser = User.objects.get(username=request.user)
+
+        # If non-manager tries to call function => shouldn't happen since button only seen by managers
+        if models.Permissions.objects.get(case=case, user=currUser).user_type != models.Permissions.MANAGER_USER:
+            return HttpResponseRedirect('/')
 
         for id in ids:
             user = User.objects.get(username=id)
