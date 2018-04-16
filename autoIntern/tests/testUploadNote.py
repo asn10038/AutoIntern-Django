@@ -26,20 +26,23 @@ class NoteUploadTest(TestCase):
         user = User.objects.get(username="Test")
         content = b'This is a test note'
         note_name = 'new_note_name'
-        note = default_storage.save('static/document_folder/testing_note.txt',
-                             ContentFile(content))
+        doc = Document(company=note_name, doc_type='note',
+                       doc_date='20171103',
+                       doc_id='testing_note.txt', upload_id=user,
+                       file=default_storage.save('static/document_folder/testing_note.txt',
+                                                 ContentFile(content)))
+
+        doc.save()
 
 
     def test_note(self):
-        setUp()
-        doc = Document(GetDocumentByHeader(file, user, False, note_name))
+        doc = Document.objects.get(doc_id='testing_note.txt')
         content = doc.file.read()
         self.assertEquals(content, b'This is a test note')
 
 
 
-    def test_document_save(self):
-        setUp()
-        doc = Document.objects.get(doc_id='testing_note.txt')
+    def test_note_save(self):
+        doc = Document.objects.get(company='new_note_name')
         content = str(doc.file.url).replace("%2F", "/")
         self.assertEquals(content, 'https://storage.googleapis.com/autointern-dev/static/document_folder/testing_note.txt')
