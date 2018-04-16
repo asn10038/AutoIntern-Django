@@ -16,6 +16,10 @@
 {% if upload_fail %}
 <script>alert('That Document has already been uploaded')</script>
 {% endif%}
+{% if non_text %}
+<script>alert('Non-Text documents cannot be uploaded at this time')</script>
+{% endif%}
+
 
 <div id="case_docs_tabContent" class="tab-content">
   <div class="tab-pane active" id="cases">
