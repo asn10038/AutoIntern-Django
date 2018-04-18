@@ -95,7 +95,7 @@ class ViewDocumentTest(TestCase):
             'path': 'INVALIDDOC',
             'txt': ''
         })
-        self.assertTrue("/" == response.url)
+        self.assertTrue("/error" == response.url)
 
     def test_nonexistent_doc(self):
         response = self.client.post("/login/", {

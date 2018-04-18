@@ -86,7 +86,7 @@ def viewDocument(request):
                 context = {'file': file}
             return render(request, 'autoIntern/viewDocument.html', context)
         except:
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error/')
 
 @login_required(redirect_field_name='', login_url='/')
 def viewCase(request):
@@ -131,7 +131,7 @@ def viewCase(request):
         return render(request, 'autoIntern/viewCase.html', context)
 
     except Exception as e:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
 
 @login_required(redirect_field_name='', login_url='/')
 def createTag(request):
@@ -161,7 +161,7 @@ def createTag(request):
         except Exception as e:
             print("EXCEPTION CREATING TAG")
             print(e)
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error')
 
 @login_required(redirect_field_name='', login_url='/')
 def upload(request):
@@ -185,7 +185,7 @@ def upload(request):
             else:
                 new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
         except:
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error')
 
         case = None
         cur_case_id = None
@@ -278,7 +278,7 @@ def exportTags(request):
 
             return response
         except:
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error')
     else:
         return HttpResponseRedirect('/')
 
@@ -330,7 +330,7 @@ def addUsers(request):
 
         return (viewCase(request))
     except:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
 
 @login_required(redirect_field_name='', login_url='/')
 def removeUsers(request):
@@ -356,7 +356,7 @@ def removeUsers(request):
 
         return (viewCase(request))
     except:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
 
 #Don't need to be logged in to view the css or js files
 
@@ -368,7 +368,7 @@ def getCss(request):
             string = css.read()
         return HttpResponse(string)
     except:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
 
 def getJs(request):
     '''Super hacky way to serve the js content of the site'''
@@ -378,4 +378,8 @@ def getJs(request):
             string = js.read()
         return HttpResponse(string)
     except:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
+
+def showError(request):
+    context = {}
+    return render(request, 'autoIntern/error.html', context)

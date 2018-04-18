@@ -118,7 +118,7 @@ class AddUsersTest(TestCase):
             'ids[]': (str(user1.username), str(user2.username)),
         })
 
-        self.assertTrue("/" == response.url)
+        self.assertTrue("/error" == response.url)
 
 
     def testRemoveInvalidCase(self):
@@ -135,7 +135,7 @@ class AddUsersTest(TestCase):
             'ids[]': (str(user1.username), str(user2.username)),
         })
 
-        self.assertTrue("/" == response.url)
+        self.assertTrue("/error" == response.url)
 
 
     def testUserAttemptsAdd(self):
