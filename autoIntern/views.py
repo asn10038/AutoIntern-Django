@@ -359,6 +359,7 @@ def removeUsers(request):
         return HttpResponseRedirect('/')
 
 #Don't need to be logged in to view the css or js files
+
 def getCss(request):
     '''Super hacky way to serve the css content of the site'''
     css = ''
