@@ -27,3 +27,12 @@
 .highlight {
     background-color: yellow;
 }
+
+#loadpage{
+    position:absolute;
+    left:0px;
+    top:0px;
+    background-color:white;
+    layer-background-color:white; height:100%;
+    width:100%;
+}
