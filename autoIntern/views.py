@@ -357,3 +357,24 @@ def removeUsers(request):
         return (viewCase(request))
     except:
         return HttpResponseRedirect('/')
+
+#Don't need to be logged in to view the css or js files
+def getCss(request):
+    '''Super hacky way to serve the css content of the site'''
+    css = ''
+    try:
+        with open('./static/autoInternBase.css') as css:
+            string = css.read()
+        return HttpResponse(string)
+    except:
+        return HttpResponseRedirect('/')
+
+def getJs(request):
+    '''Super hacky way to serve the js content of the site'''
+    js = ''
+    try:
+        with open('./static/autoInternBase.js') as js:
+            string = js.read()
+        return HttpResponse(string)
+    except:
+        return HttpResponseRedirect('/')
