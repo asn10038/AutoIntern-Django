@@ -18,5 +18,7 @@ urlpatterns = [
     url(r'createTag/',views.createTag, name='createTag'),
     url(r'changePassword/', auth_views.PasswordChangeView.as_view(
         template_name='registration/passwordChangeForm.html',
-        success_url='/',), name='changePassword')
+        success_url='/',), name='changePassword'),
+    url(r'static/autoInternBase.css', views.getCss, name='getcss'),
+    url(r'static/autoInternBase.js', views.getJs, name='getjs')
 ]
