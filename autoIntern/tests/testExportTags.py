@@ -1,5 +1,5 @@
 """Tests the exportTags function on the website"""
-from autoIntern.models import User, Document
+from autoIntern.models import User, Document, Data
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.test import TestCase
@@ -26,6 +26,18 @@ class ViewDocumentTest(TestCase):
 
         doc.save()
 
+        # Add user-defined tag to document to be tested
+        tag = Data(data_id = 1,
+                   creator_id = user,
+                   document_id = 'APPLE_INC.10-K.20171103',
+                   value = 'testValue',
+                   label = 'testLabel',
+                   line = 420,
+                   index = 420,
+                   rangySelection = '0/0/17/1/1/1/1/0/2/1/13/29/2:0,0/0/17/1/1/1/1/0/2/1/13/29/2:7',
+                   current = None)
+        tag.save()
+
     def test_invalid_access(self):
         response = self.client.get('/exportTags/')
         self.assertTrue("/" == response.url)
@@ -47,6 +59,8 @@ class ViewDocumentTest(TestCase):
         self.assertTrue("APPLE_INC" in output)
         self.assertTrue("10-K" in output)
         self.assertTrue("20171103" in output)
+        self.assertTrue("testLabel" in output)
+        self.assertTrue("testValue" in output)
 
     def test_txt_output(self):
         response = self.client.post("/userLogin/", {
@@ -66,6 +80,8 @@ class ViewDocumentTest(TestCase):
         self.assertTrue("APPLE_INC" in output)
         self.assertTrue("10-K" in output)
         self.assertTrue("20171103" in output)
+        self.assertTrue("testLabel" in output)
+        self.assertTrue("testValue" in output)
 
     def test_json_output(self):
         response = self.client.post("/userLogin/", {
@@ -85,6 +101,8 @@ class ViewDocumentTest(TestCase):
         self.assertTrue("APPLE_INC" in output)
         self.assertTrue("10-K" in output)
         self.assertTrue("20171103" in output)
+        self.assertTrue("testLabel" in output)
+        self.assertTrue("testValue" in output)
 
     def test_invalid_doc_id_format(self):
         response = self.client.post("/userLogin/", {
