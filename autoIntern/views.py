@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from autoIntern.forms import UserForm
 from autoIntern import models
-from autoIntern.helpers import GetDocumentByHeader, get_documents, get_cases, get_docs_in_case
+from autoIntern.helpers import GetDocumentByHeader, get_documents, get_cases, get_docs_in_case, valid_file_type
 import json
 import csv
 from django.core.exceptions import ObjectDoesNotExist
@@ -64,9 +64,11 @@ def viewDocument(request):
             document = models.Document.objects.get(doc_id=cur_doc_id)
 
             raw = document.file.read().decode('utf-8')
+            if document.doc_type != 'note':
+                raw = raw.split('\n')[50:] # remove top level of junk
             file=''
             tags = []
-            for line in raw.split('\n'):
+            for line in raw:
                 # Can we remove the new body css this way too?
                 if "<body" in line and "style=" in line:
                     file += '<body>'
@@ -84,7 +86,7 @@ def viewDocument(request):
                 context = {'file': file}
             return render(request, 'autoIntern/viewDocument.html', context)
         except:
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error/')
 
 @login_required(redirect_field_name='', login_url='/')
 def viewCase(request):
@@ -129,7 +131,7 @@ def viewCase(request):
         return render(request, 'autoIntern/viewCase.html', context)
 
     except Exception as e:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
 
 @login_required(redirect_field_name='', login_url='/')
 def createTag(request):
@@ -159,7 +161,7 @@ def createTag(request):
         except Exception as e:
             print("EXCEPTION CREATING TAG")
             print(e)
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error')
 
 @login_required(redirect_field_name='', login_url='/')
 def upload(request):
@@ -167,40 +169,63 @@ def upload(request):
     if request.method == 'POST':
         user = User.objects.get(username=request.user)
         new_document = None
+        filename = str(request.FILES['uploadFile'])
+
+        if not valid_file_type(filename):
+            context = {'documents': get_documents(), 'cases': get_cases(request), 'non_text': True}
+            return render(request, 'autoIntern/homepage.html', context)
 
         try:
             if 'public' in request.POST:
-                new_document = GetDocumentByHeader(request.FILES['uploadFile'], user, False)
+                if 'document_name' in request.POST:
+                    new_document = GetDocumentByHeader(request.FILES['uploadFile'], user, False, request.POST['document_name'])
+                else:
+                    new_document = GetDocumentByHeader(request.FILES['uploadFile'], user, False)
+
             else:
                 new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
         except:
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error')
 
-        # Not sure what new_document[0] means
-        if new_document[0] == False and 'case_id' in request.POST:
+        case = None
+        cur_case_id = None
+        user_perms = None
+        if 'case_id' in request.POST:
             case = models.Case.objects.get(case_id=request.POST['case_id'])
             cur_case_id = case.case_id
+            user_perms = models.Permissions.objects.all().filter(case=cur_case_id, user=user)
+
+        # new_document[0] is True/False on if the doc exists already
+        if new_document[0] == False and 'case_id' in request.POST:
             case_name = case.case_name
             existing_doc = models.Document.objects.get(doc_id = new_document[1])
             case.documents.add(existing_doc)
             context = {'documents': get_docs_in_case(cur_case_id),
                        'case_name': case_name, 'case_id': cur_case_id,
                        'upload_fail': True}
+            if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
+                context['is_manager'] = True
+            else:
+                context['is_manager'] = False
             return render(request, 'autoIntern/viewCase.html', context)
         elif new_document[0] == False:
             context = {'documents': get_documents(), 'cases': get_cases(request), 'upload_fail': True}
             return render(request, 'autoIntern/homePage.html', context)
         elif 'case_id' in request.POST:
-            case = models.Case.objects.get(case_id=request.POST['case_id'])
             case.documents.add(new_document[1])
-            cur_case_id = case.case_id
             context = {'documents': get_docs_in_case(cur_case_id),
                        'case_name': case.case_name, 'case_id': case.case_id}
+            if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
+                context['is_manager'] = True
+            else:
+                context['is_manager'] = False
             return render(request, 'autoIntern/viewCase.html', context)
         else:
             return HttpResponseRedirect('/')
     else:
         return HttpResponseRedirect('/')
+
+
 
 @login_required(redirect_field_name='', login_url='/')
 def exportTags(request):
@@ -253,7 +278,7 @@ def exportTags(request):
 
             return response
         except:
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error')
     else:
         return HttpResponseRedirect('/')
 
@@ -305,7 +330,7 @@ def addUsers(request):
 
         return (viewCase(request))
     except:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
 
 @login_required(redirect_field_name='', login_url='/')
 def removeUsers(request):
@@ -331,4 +356,30 @@ def removeUsers(request):
 
         return (viewCase(request))
     except:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
+
+#Don't need to be logged in to view the css or js files
+
+def getCss(request):
+    '''Super hacky way to serve the css content of the site'''
+    css = ''
+    try:
+        with open('./static/autoInternBase.css') as css:
+            string = css.read()
+        return HttpResponse(string)
+    except:
+        return HttpResponseRedirect('/error')
+
+def getJs(request):
+    '''Super hacky way to serve the js content of the site'''
+    js = ''
+    try:
+        with open('./static/autoInternBase.js') as js:
+            string = js.read()
+        return HttpResponse(string)
+    except:
+        return HttpResponseRedirect('/error')
+
+def showError(request):
+    context = {}
+    return render(request, 'autoIntern/error.html', context)

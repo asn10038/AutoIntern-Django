@@ -43,10 +43,10 @@ class ViewDocumentTest(TestCase):
         })
         # Go to document
         response = self.client.get("/viewDocument?id=APPLE_INC.10-K.20171103")
-        self.assertTrue('10-K Report' in str(response.content))
+        self.assertTrue('10-K' in str(response.content))
 
 
     def test_no_user_logged_in(self):
         response = self.client.get("/viewDocument?id=APPLE_INC.10-K.20171103")
-        self.assertFalse('10-K Report' in str(response.content))
+        self.assertFalse('10-K' in str(response.content))
         self.assertTrue("/" == response.url)

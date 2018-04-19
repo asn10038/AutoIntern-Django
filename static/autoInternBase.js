@@ -83,6 +83,7 @@ function highlightTags(tags)
 
 // need to highlight the selected text
 $( document ).ready(function() {
+	$("#loadpage").hide();
     console.log( "ready!" );
     rangy.init();
     tags = getTags();
