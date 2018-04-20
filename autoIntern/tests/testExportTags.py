@@ -5,7 +5,7 @@ from django.core.files.storage import default_storage
 from django.test import TestCase
 from autoIntern.forms import UserForm
 
-class ViewDocumentTest(TestCase):
+class ExportTagsTest(TestCase):
     def setUp(self):
         form = UserForm({
             'username': 'Test',
