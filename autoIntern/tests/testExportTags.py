@@ -117,7 +117,7 @@ class ExportTagsTest(TestCase):
 
     def test_nonexistent_doc(self):
         response = self.client.post("/userLogin/", {
-            'email': 'test@test.com',
+            'username': 'Test',
             'password': 'test'
         })
         response = self.client.post('/exportTags/', {
