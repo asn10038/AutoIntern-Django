@@ -124,4 +124,4 @@ class ExportTagsTest(TestCase):
             'path': '/viewDocument?id=NONEXISTENT-DOC',
             'txt': ''
         })
-        self.assertTrue("/" == response.url)
+        self.assertTrue("/error" == response.url)
