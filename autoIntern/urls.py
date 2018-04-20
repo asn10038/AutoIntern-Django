@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'viewDocument', views.viewDocument, name='viewDocument'),
     url(r'viewCase', views.viewCase, name='viewCase'),
     url(r'exportTags/', views.exportTags, name='exportTags'),
+    url(r'exportTagsCase/', views.exportTagsCase, name='exportTagsCase'),
     url(r'addUsers/', views.addUsers, name='addUsers'),
     url(r'removeUsers/', views.removeUsers, name='removeUsers'),
     url(r'createCase/', views.createCase, name='createCase'),
