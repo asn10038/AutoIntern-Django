@@ -116,7 +116,7 @@ class ExportTagsTest(TestCase):
         self.assertTrue("/error" == response.url)
 
     def test_nonexistent_doc(self):
-        response = self.client.post("/login/", {
+        response = self.client.post("/userLogin/", {
             'email': 'test@test.com',
             'password': 'test'
         })
