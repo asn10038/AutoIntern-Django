@@ -289,6 +289,67 @@ def exportTags(request):
     else:
         return HttpResponseRedirect('/')
 
+
+@login_required(redirect_field_name='', login_url='/')
+def exportTagsCase(request):
+    ''' Exports tags across documents'''
+    # Identifiers for documents:
+    IDS = ['company', 'doc_type', 'doc_date']
+    if request.method == 'POST':
+        try:
+            doc_ids = request.POST.getlist('doc_ids[]')
+
+            all_tags = {}
+
+            for id in doc_ids:
+                doc = models.Document.objects.get(doc_id=id)
+                vals = doc.__dict__
+
+                doc_tags = {tag: vals[tag] for tag in IDS}
+
+                # data_tags => contains document tags
+                data = models.Data.objects.all().filter(document=doc)
+                data_tags = {tag.label: tag.value for tag in data}
+
+                # Combine
+                dict_tags = {**doc_tags, **data_tags}
+
+                all_tags[id] = dict_tags
+
+            # Create set of all possible labels
+            labels = set()
+            for dict in all_tags:
+                labels.update(all_tags[dict].keys())
+
+            # Create the HttpResponse object with the appropriate CSV header.
+            response = HttpResponse(content_type='text/csv; charset=utf8')
+            response['Content-Disposition'] = 'attachment; filename="tags_across_documents.csv"'
+
+            header = ['']
+            header.extend(doc_ids)
+
+            writer = csv.writer(response)
+            writer.writerow(header)
+
+            for label in labels:
+                row = [label]
+
+                for id in doc_ids:
+                    curr_tags = all_tags[id]
+                    if label in curr_tags:
+                        row.append(curr_tags[label])
+                    else:
+                        row.append('')
+
+                writer.writerow(row)
+
+            return response
+
+        except:
+            return HttpResponseRedirect('/error')
+    else:
+        return HttpResponseRedirect('/')
+
 @login_required(redirect_field_name='', login_url='/')
 def createCase(request):
     currUser = User.objects.get(username=request.user)
