@@ -230,17 +230,24 @@ def upload(request):
 @login_required(redirect_field_name='', login_url='/')
 def exportTags(request):
     ''' Exports tags associated with document'''
-    # Tags to be exported:
-    TAGS = ['company', 'doc_type', 'doc_date']
+    # Identifiers for documents:
+    IDS = ['company', 'doc_type', 'doc_date']
     if request.method == 'POST':
         try:
             path = request.POST['path']
             doc_id = path.split("=", maxsplit=1)[1]
             doc = models.Document.objects.get(doc_id=doc_id)
-            vals = doc.__dict__
 
-            #dict_tags => contains tags and corresponding values
-            dict_tags = {tag : vals[tag] for tag in TAGS}
+            #doc_ids => contains document identifiers
+            vals = doc.__dict__
+            doc_ids = {tag: vals[tag] for tag in IDS}
+
+            #data_tags => contains document tags
+            data = models.Data.objects.all().filter(document=doc)
+            data_tags = {tag.label: tag.value for tag in data}
+
+            #Combine
+            dict_tags = {**doc_ids, **data_tags}
 
             #Create json
             js = json.dumps(dict_tags)
@@ -249,10 +256,10 @@ def exportTags(request):
             if 'csv' in request.POST:
                 # Create the HttpResponse object with the appropriate CSV header.
                 response = HttpResponse(content_type='text/csv; charset=utf8')
-                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.csv"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.csv"' % (vals[IDS[0]], vals[IDS[1]], vals[IDS[2]])
 
                 writer = csv.writer(response)
-                for tag in TAGS:
+                for tag in dict_tags:
                     writer.writerow([tag, conv[tag]])
 
             elif 'txt' in request.POST:
@@ -268,15 +275,76 @@ def exportTags(request):
 
                 # Create the HttpResponse object with the appropriate TXT header.
                 response = HttpResponse(out, content_type='text/plain; charset=utf8')
-                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.txt"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.txt"' % (vals[IDS[0]], vals[IDS[1]], vals[IDS[2]])
 
             elif 'json' in request.POST:
                 response = HttpResponse(js, content_type='application/javascript; charset=utf8')
-                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.json"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.json"' % (vals[IDS[0]], vals[IDS[1]], vals[IDS[2]])
             else:
                 return HttpResponseRedirect('/')
 
             return response
+        except:
+            return HttpResponseRedirect('/error')
+    else:
+        return HttpResponseRedirect('/')
+
+
+@login_required(redirect_field_name='', login_url='/')
+def exportTagsCase(request):
+    ''' Exports tags across documents'''
+    # Identifiers for documents:
+    IDS = ['company', 'doc_type', 'doc_date']
+    if request.method == 'POST':
+        try:
+            doc_ids = request.POST.getlist('doc_ids[]')
+
+            all_tags = {}
+
+            for id in doc_ids:
+                doc = models.Document.objects.get(doc_id=id)
+                vals = doc.__dict__
+
+                doc_tags = {tag: vals[tag] for tag in IDS}
+
+                # data_tags => contains document tags
+                data = models.Data.objects.all().filter(document=doc)
+                data_tags = {tag.label: tag.value for tag in data}
+
+                # Combine
+                dict_tags = {**doc_tags, **data_tags}
+
+                all_tags[id] = dict_tags
+
+            # Create set of all possible labels
+            labels = set()
+            for dict in all_tags:
+                labels.update(all_tags[dict].keys())
+
+            # Create the HttpResponse object with the appropriate CSV header.
+            response = HttpResponse(content_type='text/csv; charset=utf8')
+            response['Content-Disposition'] = 'attachment; filename="tags_across_documents.csv"'
+
+            header = ['']
+            header.extend(doc_ids)
+
+            writer = csv.writer(response)
+            writer.writerow(header)
+
+            for label in labels:
+                row = [label]
+
+                for id in doc_ids:
+                    curr_tags = all_tags[id]
+                    if label in curr_tags:
+                        row.append(curr_tags[label])
+                    else:
+                        row.append('')
+
+                writer.writerow(row)
+
+            return response
+
         except:
             return HttpResponseRedirect('/error')
     else:
