@@ -9,17 +9,19 @@
 <script type="text/javascript" charset="utf8" src="https://rawgit.com/timdown/rangy/master/lib/rangy-classapplier.js"></script>
 <script type="text/javascript" charset="utf8" src="https://rawgit.com/timdown/rangy/master/lib/rangy-serializer.js"></script>
 <!-- Custom Auto Intern Scripts and CSS-->
-<!-- IMPORTANT YOU CAN ONLY ACCESS THESE FILES IF YOU HAVE ACCESS TO GOOGLE BUCKET NEED TO LOG IN BEFORE -->
-<!--<script type="text/javascript" charset="utf8" src="http://storage.cloud.google.com/autointern-dev/static/autoInternBase.js"></script>-->
-<!--<link rel="stylesheet" type="text/css" href="http://storage.cloud.google.com/autointern-dev/static/autoInternBase.css">-->
-{% load static %}
-<script type="text/javascript" charset="utf8" src="{% static "autoInternBase.js" %}"></script>
-<link rel="stylesheet" type="text/css" href="{% static "autoInternBase.css" %}">
+<link rel="stylesheet" type="text/css" href="../static/autoInternBase.css">
+<script type="text/javascript" charset="utf8" src="../static/autoInternBase.js"></script>
 
-<div class="container">
+<div id='documentContainer' class="container">
   <div class="col-md-4 text-center">
     <button class="btn btn-primary btn-lg mx-5 my-2" data-toggle="modal" type="button" data-target="#exportTags">Export Tags</button>
   </div>
+  <div id="loadpage">
+      <p align="center" style="font-size: large;">
+        <img src="https://loading.io/spinners/double-ring/lg.double-ring-spinner.gif">
+        <B>Loading ... ... Please wait!</B>
+      </p>
+</div>
   <!-- Make tag modal window -->
   <div class="modal" tabindex="-1" role="alertdialog" id="makeTagModal">
     <div class="modal-dialog" role="alertdialog">

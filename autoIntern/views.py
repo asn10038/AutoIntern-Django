@@ -86,7 +86,7 @@ def viewDocument(request):
                 context = {'file': file}
             return render(request, 'autoIntern/viewDocument.html', context)
         except:
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error/')
 
 @login_required(redirect_field_name='', login_url='/')
 def viewCase(request):
@@ -131,7 +131,7 @@ def viewCase(request):
         return render(request, 'autoIntern/viewCase.html', context)
 
     except Exception as e:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
 
 @login_required(redirect_field_name='', login_url='/')
 def createTag(request):
@@ -161,67 +161,67 @@ def createTag(request):
         except Exception as e:
             print("EXCEPTION CREATING TAG")
             print(e)
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error')
 
 @login_required(redirect_field_name='', login_url='/')
 def upload(request):
     '''Handles Local file uploads'''
     if request.method == 'POST':
-        user = User.objects.get(username=request.user)
-        new_document = None
-        filename = str(request.FILES['uploadFile'])
-
-        if not valid_file_type(filename):
-            context = {'documents': get_documents(), 'cases': get_cases(request), 'non_text': True}
-            return render(request, 'autoIntern/homepage.html', context)
-
         try:
-            if 'public' in request.POST:
+            user = User.objects.get(username=request.user)
+            new_document = None
+            filename = str(request.FILES['uploadFile'])
+
+            if not valid_file_type(filename):
+                context = {'documents': get_documents(), 'cases': get_cases(request), 'non_text': True}
+                return render(request, 'autoIntern/homepage.html', context)
+
+            if request.POST['public'] == 'True':
                 if 'document_name' in request.POST:
                     new_document = GetDocumentByHeader(request.FILES['uploadFile'], user, False, request.POST['document_name'])
                 else:
                     new_document = GetDocumentByHeader(request.FILES['uploadFile'], user, False)
-
             else:
                 new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
-        except:
-            return HttpResponseRedirect('/')
 
-        case = None
-        cur_case_id = None
-        user_perms = None
-        if 'case_id' in request.POST:
-            case = models.Case.objects.get(case_id=request.POST['case_id'])
-            cur_case_id = case.case_id
-            user_perms = models.Permissions.objects.all().filter(case=cur_case_id, user=user)
+            case = None
+            cur_case_id = None
+            user_perms = None
+            if 'case_id' in request.POST:
+                case = models.Case.objects.get(case_id=request.POST['case_id'])
+                cur_case_id = case.case_id
+                user_perms = models.Permissions.objects.all().filter(case=cur_case_id, user=user)
 
-        # new_document[0] is True/False on if the doc exists already
-        if new_document[0] == False and 'case_id' in request.POST:
-            case_name = case.case_name
-            existing_doc = models.Document.objects.get(doc_id = new_document[1])
-            case.documents.add(existing_doc)
-            context = {'documents': get_docs_in_case(cur_case_id),
-                       'case_name': case_name, 'case_id': cur_case_id,
-                       'upload_fail': True}
-            if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
-                context['is_manager'] = True
+            # new_document[0] is True/False on if the doc exists already
+            if new_document[0] == False and 'case_id' in request.POST:
+                case_name = case.case_name
+                existing_doc = models.Document.objects.get(doc_id = new_document[1])
+                case.documents.add(existing_doc)
+                context = {'documents': get_docs_in_case(cur_case_id),
+                           'case_name': case_name, 'case_id': cur_case_id,
+                           'upload_fail': True}
+                if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
+                    context['is_manager'] = True
+                else:
+                    context['is_manager'] = False
+                #return HttpResponseRedirect('/viewCase?id=' + request.POST['case_id'])
+                return render(request, 'autoIntern/viewCase.html', context)
+            elif new_document[0] == False:
+                context = {'documents': get_documents(), 'cases': get_cases(request), 'upload_fail': True}
+                return render(request, 'autoIntern/homePage.html', context)
+            elif 'case_id' in request.POST:
+                case.documents.add(new_document[1])
+                context = {'documents': get_docs_in_case(cur_case_id),
+                           'case_name': case.case_name, 'case_id': case.case_id}
+                if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
+                    context['is_manager'] = True
+                else:
+                    context['is_manager'] = False
+                return render(request, 'autoIntern/viewCase.html', context)
             else:
-                context['is_manager'] = False
-            return render(request, 'autoIntern/viewCase.html', context)
-        elif new_document[0] == False:
-            context = {'documents': get_documents(), 'cases': get_cases(request), 'upload_fail': True}
-            return render(request, 'autoIntern/homePage.html', context)
-        elif 'case_id' in request.POST:
-            case.documents.add(new_document[1])
-            context = {'documents': get_docs_in_case(cur_case_id),
-                       'case_name': case.case_name, 'case_id': case.case_id}
-            if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
-                context['is_manager'] = True
-            else:
-                context['is_manager'] = False
-            return render(request, 'autoIntern/viewCase.html', context)
-        else:
-            return HttpResponseRedirect('/')
+                return HttpResponseRedirect('/')
+        except Exception as e:
+            return HttpResponseRedirect('/error')
     else:
         return HttpResponseRedirect('/')
 
@@ -230,17 +230,24 @@ def upload(request):
 @login_required(redirect_field_name='', login_url='/')
 def exportTags(request):
     ''' Exports tags associated with document'''
-    # Tags to be exported:
-    TAGS = ['company', 'doc_type', 'doc_date']
+    # Identifiers for documents:
+    IDS = ['company', 'doc_type', 'doc_date']
     if request.method == 'POST':
         try:
             path = request.POST['path']
             doc_id = path.split("=", maxsplit=1)[1]
             doc = models.Document.objects.get(doc_id=doc_id)
-            vals = doc.__dict__
 
-            #dict_tags => contains tags and corresponding values
-            dict_tags = {tag : vals[tag] for tag in TAGS}
+            #doc_ids => contains document identifiers
+            vals = doc.__dict__
+            doc_ids = {tag: vals[tag] for tag in IDS}
+
+            #data_tags => contains document tags
+            data = models.Data.objects.all().filter(document=doc)
+            data_tags = {tag.label: tag.value for tag in data}
+
+            #Combine
+            dict_tags = {**doc_ids, **data_tags}
 
             #Create json
             js = json.dumps(dict_tags)
@@ -249,10 +256,10 @@ def exportTags(request):
             if 'csv' in request.POST:
                 # Create the HttpResponse object with the appropriate CSV header.
                 response = HttpResponse(content_type='text/csv; charset=utf8')
-                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.csv"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.csv"' % (vals[IDS[0]], vals[IDS[1]], vals[IDS[2]])
 
                 writer = csv.writer(response)
-                for tag in TAGS:
+                for tag in dict_tags:
                     writer.writerow([tag, conv[tag]])
 
             elif 'txt' in request.POST:
@@ -268,17 +275,78 @@ def exportTags(request):
 
                 # Create the HttpResponse object with the appropriate TXT header.
                 response = HttpResponse(out, content_type='text/plain; charset=utf8')
-                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.txt"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.txt"' % (vals[IDS[0]], vals[IDS[1]], vals[IDS[2]])
 
             elif 'json' in request.POST:
                 response = HttpResponse(js, content_type='application/javascript; charset=utf8')
-                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.json"' % (vals[TAGS[0]], vals[TAGS[1]], vals[TAGS[2]])
+                response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.json"' % (vals[IDS[0]], vals[IDS[1]], vals[IDS[2]])
             else:
                 return HttpResponseRedirect('/')
 
             return response
         except:
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/error')
+    else:
+        return HttpResponseRedirect('/')
+
+
+@login_required(redirect_field_name='', login_url='/')
+def exportTagsCase(request):
+    ''' Exports tags across documents'''
+    # Identifiers for documents:
+    IDS = ['company', 'doc_type', 'doc_date']
+    if request.method == 'POST':
+        try:
+            doc_ids = request.POST.getlist('doc_ids[]')
+
+            all_tags = {}
+
+            for id in doc_ids:
+                doc = models.Document.objects.get(doc_id=id)
+                vals = doc.__dict__
+
+                doc_tags = {tag: vals[tag] for tag in IDS}
+
+                # data_tags => contains document tags
+                data = models.Data.objects.all().filter(document=doc)
+                data_tags = {tag.label: tag.value for tag in data}
+
+                # Combine
+                dict_tags = {**doc_tags, **data_tags}
+
+                all_tags[id] = dict_tags
+
+            # Create set of all possible labels
+            labels = set()
+            for dict in all_tags:
+                labels.update(all_tags[dict].keys())
+
+            # Create the HttpResponse object with the appropriate CSV header.
+            response = HttpResponse(content_type='text/csv; charset=utf8')
+            response['Content-Disposition'] = 'attachment; filename="tags_across_documents.csv"'
+
+            header = ['']
+            header.extend(doc_ids)
+
+            writer = csv.writer(response)
+            writer.writerow(header)
+
+            for label in labels:
+                row = [label]
+
+                for id in doc_ids:
+                    curr_tags = all_tags[id]
+                    if label in curr_tags:
+                        row.append(curr_tags[label])
+                    else:
+                        row.append('')
+
+                writer.writerow(row)
+
+            return response
+
+        except:
+            return HttpResponseRedirect('/error')
     else:
         return HttpResponseRedirect('/')
 
@@ -330,7 +398,7 @@ def addUsers(request):
 
         return (viewCase(request))
     except:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
 
 @login_required(redirect_field_name='', login_url='/')
 def removeUsers(request):
@@ -356,9 +424,10 @@ def removeUsers(request):
 
         return (viewCase(request))
     except:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
 
 #Don't need to be logged in to view the css or js files
+
 def getCss(request):
     '''Super hacky way to serve the css content of the site'''
     css = ''
@@ -367,7 +436,7 @@ def getCss(request):
             string = css.read()
         return HttpResponse(string)
     except:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
 
 def getJs(request):
     '''Super hacky way to serve the js content of the site'''
@@ -377,4 +446,8 @@ def getJs(request):
             string = js.read()
         return HttpResponse(string)
     except:
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/error')
+
+def showError(request):
+    context = {}
+    return render(request, 'autoIntern/error.html', context)
