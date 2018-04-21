@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from autoIntern.forms import UserForm
 from autoIntern import models
-from autoIntern.helpers import GetDocumentByHeader, get_documents, get_cases, get_docs_in_case, valid_file_type
+from autoIntern.helpers import get_document_by_header, get_documents, get_cases, get_docs_in_case, valid_file_type
 import json
 import csv
 from django.core.exceptions import ObjectDoesNotExist
@@ -178,12 +178,12 @@ def upload(request):
         try:
             if 'public' in request.POST:
                 if 'document_name' in request.POST:
-                    new_document = GetDocumentByHeader(request.FILES['uploadFile'], user, False, request.POST['document_name'])
+                    new_document = get_document_by_header(request.FILES['uploadFile'], user, False, request.POST['document_name'])
                 else:
-                    new_document = GetDocumentByHeader(request.FILES['uploadFile'], user, False)
+                    new_document = get_document_by_header(request.FILES['uploadFile'], user, False)
 
             else:
-                new_document = GetDocumentByHeader(request.FILES['uploadFile'], user)
+                new_document = get_document_by_header(request.FILES['uploadFile'], user)
         except:
             return HttpResponseRedirect('/error')
 
