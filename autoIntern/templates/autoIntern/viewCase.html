@@ -4,12 +4,20 @@
 {% if user.is_authenticated %}
 <!-- what the user sees if they are logged in -->
 <div class="container">
-  <div class="btn-group" role="group">
-    <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#uploadModal2">Upload to {{case_name}} Only</button>
-    <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#uploadModal">Upload Publicly</button>
+  <div class="btn-toolbar" role="toolbar">
+    <div class="btn-group mr-2" role="group">
+      <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#uploadModal2">Upload to {{case_name}} Only</button>
+      <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#uploadModal">Upload Publicly</button>
+      <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#uploadModal3">Upload Note</button>
+    </div>
+    <div class="btn-group mr-2" role="group">
+      <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#exportTagsCase">Export Tags</button>
+    </div>
     {% if is_manager %}
-    <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#addUserModal">Add User to {{case_name}} </button>
-    <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#removeUserModal">Remove User from {{case_name}} </button>
+    <div class="btn-group mr-2" role="group">
+      <button class="btn btn-success" data-toggle="modal" type="button" data-target="#addUserModal">Add User</button>
+      <button class="btn btn-danger" data-toggle="modal" type="button" data-target="#removeUserModal">Remove User</button>
+    </div>
     {% endif %}
   </div>
   <table id="documentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
@@ -110,6 +118,86 @@
     </div>
   </div>
 </div>
+<div class="modal" tabindex="-1" role="alertdialog" id="uploadModal3">
+  <div class="modal-dialog" role="alertdialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Upload Note File</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="/upload/" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile">
+          <input type="text" name="document_name" required>
+          <input type="hidden" name="case_id" value="{{ case_id }}">
+          <input type="hidden" name="public" value="False">
+          <button type="submit" class="btn btn-outline-primary">Upload</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ExportTagsCase modal -->
+<div class="modal" tabindex="-1" role="alertdialog" id="exportTagsCase">
+  <div class="modal-dialog modal-lg" role="alertdialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Users</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="/exportTagsCase/" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <h3>Documents</h3>
+          <table id="exportTagsDocumentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th></th>
+                <th> Company </th>
+                <th> Type </th>
+                <th> Date </th>
+                <th> Uploaded </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for document in documents %}
+              <tr>
+                <td><input type="checkbox" name="doc_ids[]" value="{{ document.doc_id }}"></td>
+                <th>
+                    {{ document.company }}
+                </th>
+                <th>
+                    {{ document.doc_type }}
+                </th>
+                <th>
+                    {{ document.doc_date }}
+                </th>
+                <th>
+                    {{ document.upload_datetime }}
+                </th>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <input type="hidden" name="case_id" value="{{ case_id }}">
+          <button type="submit" class="btn btn-outline-primary">Export</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- AddUser modal -->
 <div class="modal" tabindex="-1" role="alertdialog" id="addUserModal">
   <div class="modal-dialog modal-lg" role="alertdialog">
