@@ -6,12 +6,9 @@
 <div class="container">
   <div class="btn-toolbar" role="toolbar">
     <div class="btn-group mr-2" role="group">
-      <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#uploadModal2">Upload to {{case_name}} Only</button>
-      <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#uploadModal">Upload Publicly</button>
-      <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#uploadModal3">Upload Note</button>
-    </div>
-    <div class="btn-group mr-2" role="group">
-      <button class="btn btn-primary mx-3" data-toggle="modal" type="button" data-target="#exportTagsCase">Export Tags</button>
+      <button class="btn btn-primary mx-1" data-toggle="modal" type="button" data-target="#uploadModal">Upload Financial Document</button>
+      <button class="btn btn-primary mx-1" data-toggle="modal" type="button" data-target="#uploadModal2">Upload Note</button>
+      <button class="btn btn-primary mx-1" data-toggle="modal" type="button" data-target="#exportTagsCase">Export Tags</button>
     </div>
     {% if is_manager %}
     <div class="btn-group mr-2" role="group">
@@ -76,13 +73,13 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Upload File</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
       </div>
       <div class="modal-body">
         <form action="/upload/" method="post" enctype="multipart/form-data">
           {% csrf_token %}
+          <h3>Options</h3>
+          <input type="radio" name="public" value="True" checked> Public<br>
+          <input type="radio" name="public" value="False"> Private<br>
           <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile">
           <input type="hidden" name="case_id" value="{{ case_id }}">
           <button type="submit" class="btn btn-outline-primary">Upload</button>
@@ -98,34 +95,7 @@
   <div class="modal-dialog" role="alertdialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Upload File</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form action="/upload/" method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile">
-          <input type="hidden" name="case_id" value="{{ case_id }}">
-          <input type="hidden" name="public" value="False">
-          <button type="submit" class="btn btn-outline-primary">Upload</button>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="modal" tabindex="-1" role="alertdialog" id="uploadModal3">
-  <div class="modal-dialog" role="alertdialog">
-    <div class="modal-content">
-      <div class="modal-header">
         <h5 class="modal-title">Upload Note File</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
       </div>
       <div class="modal-body">
         <form action="/upload/" method="post" enctype="multipart/form-data">
@@ -196,7 +166,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- AddUser modal -->
 <div class="modal" tabindex="-1" role="alertdialog" id="addUserModal">
