@@ -43,6 +43,9 @@ def get_document_by_header(doc_file, contr_user, public=True, doc_name=''):
         doc_date = datetime.datetime.now().strftime("%Y%m%d")
 
     if Document.objects.filter(doc_id=doc_id).exists():
+        return False, doc_id
+
+    else:
         new_doc = Document(company=company, doc_type=doc_type,
                            doc_date=doc_date, doc_id=doc_id,
                            file=default_storage.save('static/document_folder/{0}'.format(doc_id),
@@ -52,7 +55,7 @@ def get_document_by_header(doc_file, contr_user, public=True, doc_name=''):
 
         return True, new_doc
 
-    return False, doc_id
+
 
 
 def get_documents():

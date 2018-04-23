@@ -1,3 +1,4 @@
+"""Functionality on the Admin Page"""
 from django.contrib import admin
 from autoIntern import models
 

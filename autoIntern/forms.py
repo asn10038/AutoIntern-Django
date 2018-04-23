@@ -1,3 +1,4 @@
+"""Forms used on autoIntern site"""
 from django.forms import ModelForm
 from django.contrib.auth.models import User
 from django import forms
@@ -7,6 +8,7 @@ class UserForm(ModelForm):
     """Defines the user form in the registration page"""
 
     class Meta:
+        """Meta class for UserForm"""
         model = User
         fields = {'username': '', 'email': '',
                   'first_name': '', 'last_name': '',
@@ -34,9 +36,11 @@ class UserForm(ModelForm):
                                                       'placeholder': 'Last Name'})
 
     def validate_password(self):
+        """Function to validate passwords"""
         pass
 
     def save(self):
+        """Save the form to a user"""
         user = User.objects.create_user(self.cleaned_data['username'],
                                         self.cleaned_data['email'],
                                         self.cleaned_data['password'])
