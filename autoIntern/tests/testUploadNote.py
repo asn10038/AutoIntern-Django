@@ -1,14 +1,10 @@
-
 from autoIntern.models import Document
 from autoIntern.models import User
 from autoIntern.forms import UserForm
 from django.test import TestCase
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.core.files import File
-import os
-from django.conf import settings
-from autoIntern.helpers import GetDocumentByHeader, get_documents, get_cases, get_docs_in_case, valid_file_type
+
 
 
 
