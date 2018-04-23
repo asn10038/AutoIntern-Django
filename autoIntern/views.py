@@ -176,63 +176,62 @@ def createTag(request):
 def upload(request):
     """Handles Local file uploads"""
     if request.method == 'POST':
-        user = User.objects.get(username=request.user)
-        new_document = None
-        filename = str(request.FILES['uploadFile'])
-
-        if not valid_file_type(filename):
-            context = {'documents': get_documents(), 'cases': get_cases(request), 'non_text': True}
-            return render(request, 'autoIntern/homepage.html', context)
-
         try:
-            if 'public' in request.POST:
+            user = User.objects.get(username=request.user)
+            new_document = None
+            filename = str(request.FILES['uploadFile'])
+
+            if not valid_file_type(filename):
+                context = {'documents': get_documents(), 'cases': get_cases(request), 'non_text': True}
+                return render(request, 'autoIntern/homepage.html', context)
+
+            if request.POST['public'] == 'True':
                 if 'document_name' in request.POST:
                     new_document = get_document_by_header(request.FILES['uploadFile'], user, False,
                                                           request.POST['document_name'])
                 else:
                     new_document = get_document_by_header(request.FILES['uploadFile'], user, False)
-
             else:
                 new_document = get_document_by_header(request.FILES['uploadFile'], user)
-        except:
-            return HttpResponseRedirect('/error')
 
-        case = None
-        cur_case_id = None
-        user_perms = None
-        if 'case_id' in request.POST:
-            case = models.Case.objects.get(case_id=request.POST['case_id'])
-            cur_case_id = case.case_id
-            user_perms = models.Permissions.objects.all().filter(case=cur_case_id, user=user)
+            case = None
+            cur_case_id = None
+            user_perms = None
+            if 'case_id' in request.POST:
+                case = models.Case.objects.get(case_id=request.POST['case_id'])
+                cur_case_id = case.case_id
+                user_perms = models.Permissions.objects.all().filter(case=cur_case_id, user=user)
 
-        # new_document[0] is True/False on if the doc exists already
-        if new_document[0] == False and 'case_id' in request.POST:
-            case_name = case.case_name
-            existing_doc = models.Document.objects.get(doc_id=new_document[1])
-            case.documents.add(existing_doc)
-            context = {'documents': get_docs_in_case(cur_case_id),
-                       'case_name': case_name, 'case_id': cur_case_id,
-                       'upload_fail': True}
-            if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
-                context['is_manager'] = True
-            else:
-                context['is_manager'] = False
-            return render(request, 'autoIntern/viewCase.html', context)
-        elif new_document[0] == False:
-            context = {'documents': get_documents(), 'cases': get_cases(request),
-                       'upload_fail': True}
-            return render(request, 'autoIntern/homePage.html', context)
-        elif 'case_id' in request.POST:
-            case.documents.add(new_document[1])
-            context = {'documents': get_docs_in_case(cur_case_id),
+            # new_document[0] is True/False on if the doc exists already
+            if new_document[0] == False and 'case_id' in request.POST:
+                case_name = case.case_name
+                existing_doc = models.Document.objects.get(doc_id=new_document[1])
+                case.documents.add(existing_doc)
+                context = {'documents': get_docs_in_case(cur_case_id),
+                           'case_name': case_name, 'case_id': cur_case_id,
+                           'upload_fail': True}
+                if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
+                    context['is_manager'] = True
+                else:
+                    context['is_manager'] = False
+                return render(request, 'autoIntern/viewCase.html', context)
+            elif new_document[0] == False:
+                context = {'documents': get_documents(), 'cases': get_cases(request),
+                          'upload_fail': True}
+                return render(request, 'autoIntern/homePage.html', context)
+            elif 'case_id' in request.POST:
+                case.documents.add(new_document[1])
+                context = {'documents': get_docs_in_case(cur_case_id),
                        'case_name': case.case_name, 'case_id': case.case_id}
-            if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
-                context['is_manager'] = True
+                if user_perms.filter(user_type=models.Permissions.MANAGER_USER).count() > 0:
+                    context['is_manager'] = True
+                else:
+                    context['is_manager'] = False
+                return render(request, 'autoIntern/viewCase.html', context)
             else:
-                context['is_manager'] = False
-            return render(request, 'autoIntern/viewCase.html', context)
-        else:
-            return HttpResponseRedirect('/')
+                return HttpResponseRedirect('/')
+        except Exception as e:
+            return HttpResponseRedirect('/error')
     else:
         return HttpResponseRedirect('/')
 
