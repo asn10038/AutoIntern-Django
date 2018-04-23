@@ -185,7 +185,7 @@ def upload(request):
                 context = {'documents': get_documents(), 'cases': get_cases(request), 'non_text': True}
                 return render(request, 'autoIntern/homepage.html', context)
 
-            if request.POST['public'] == 'True':
+            if request.POST['public'] == 'False':
                 if 'document_name' in request.POST:
                     new_document = get_document_by_header(request.FILES['uploadFile'], user, False,
                                                           request.POST['document_name'])
@@ -202,7 +202,7 @@ def upload(request):
                 cur_case_id = case.case_id
                 user_perms = models.Permissions.objects.all().filter(case=cur_case_id, user=user)
 
-            # new_document[0] is True/False on if the doc exists already
+            # new_document[0] is True/False on if the doc is a new submission
             if new_document[0] == False and 'case_id' in request.POST:
                 case_name = case.case_name
                 existing_doc = models.Document.objects.get(doc_id=new_document[1])
