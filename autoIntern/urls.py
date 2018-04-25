@@ -22,6 +22,5 @@ urlpatterns = [
         template_name='registration/passwordChangeForm.html',
         success_url='/',), name='changePassword'),
     url(r'static/autoInternBase.css', views.get_css, name='getcss'),
-    url(r'static/autoInternBase.js', views.get_js, name='getjs'),
-    url(r'error/', views.show_error, name='showError')
+    url(r'static/autoInternBase.js', views.get_js, name='getjs')
 ]
