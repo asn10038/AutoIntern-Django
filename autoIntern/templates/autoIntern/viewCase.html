@@ -17,6 +17,8 @@
     </div>
     {% endif %}
   </div>
+  <br/>
+  <h1> {{ case_name }}</h1>
   <table id="documentTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
     <thead>
       <tr>
@@ -78,8 +80,8 @@
         <form action="/upload/" method="post" enctype="multipart/form-data">
           {% csrf_token %}
           <h3>Options</h3>
-          <input type="radio" name="public" value="True" checked> Public<br>
-          <input type="radio" name="public" value="False"> Private<br>
+          <input type="radio" name="public" value="True" checked> Private<br>
+          <input type="radio" name="public" value="False"> Public<br>
           <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile">
           <input type="hidden" name="case_id" value="{{ case_id }}">
           <button type="submit" class="btn btn-outline-primary">Upload</button>

@@ -1,3 +1,4 @@
+"""DB models used on site"""
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.files.storage import default_storage
@@ -5,6 +6,7 @@ from django.core.files.base import ContentFile
 
 
 class Document(models.Model):
+    """Defines document model"""
     doc_id = models.CharField(max_length=255, primary_key=True)
     company = models.CharField(max_length=255)
     doc_type = models.CharField(max_length=255)
@@ -33,14 +35,16 @@ class Document(models.Model):
 
 
 class Case(models.Model):
+    """Defines case model"""
     case_id = models.AutoField(primary_key=True)
-    case_name = models.CharField(max_length=255, default= 'Base Case')
+    case_name = models.CharField(max_length=255, default='Base Case')
     create_datetime = models.DateTimeField(auto_now_add=True)
     documents = models.ManyToManyField(Document)
     user_permissions = models.ManyToManyField(User)
 
 
 class Data(models.Model):
+    """Defines data model"""
     data_id = models.AutoField(primary_key=True)
     creator_id = models.ForeignKey(User, on_delete=models.CASCADE)
     # case = models.ForeignKey(Case, on_delete=models.CASCADE)
@@ -54,6 +58,7 @@ class Data(models.Model):
     current = models.NullBooleanField(blank=True, null=True)
 
 class Permissions(models.Model):
+    """Defines permission model"""
     BASE_USER = 1
     MANAGER_USER = 2
     USER_CHOICES = (
