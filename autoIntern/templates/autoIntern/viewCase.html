@@ -82,7 +82,7 @@
           <h3>Options</h3>
           <input type="radio" name="public" value="True" checked> Public<br>
           <input type="radio" name="public" value="False"> Private<br>
-          <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile">
+          <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile" required>
           <input type="hidden" name="case_id" value="{{ case_id }}">
           <button type="submit" class="btn btn-outline-primary">Upload</button>
         </form>
@@ -102,7 +102,7 @@
       <div class="modal-body">
         <form action="/upload/" method="post" enctype="multipart/form-data">
           {% csrf_token %}
-          <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile">
+          <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile" required>
           <input type="text" name="document_name" required>
           <input type="hidden" name="case_id" value="{{ case_id }}">
           <input type="hidden" name="public" value="False">
