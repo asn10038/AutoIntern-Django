@@ -32,13 +32,20 @@ class NoteUploadTest(TestCase):
 
 
     def test_note(self):
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
+            'password': 'test'
+        })
         doc = Document.objects.get(doc_id='testing_note.txt')
         content = doc.file.read()
         self.assertEquals(content, b'This is a test note')
 
 
-
     def test_note_save(self):
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
+            'password': 'test'
+        })
         doc = Document.objects.get(company='new_note_name')
         content = str(doc.file.url).replace("%2F", "/")
         self.assertEquals(content, 'https://storage.googleapis.com/autointern-dev/static/document_folder/testing_note.txt')

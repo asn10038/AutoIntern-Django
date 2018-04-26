@@ -35,16 +35,12 @@ def user_login(request):
         if user is not None:
             login(request, user)
         return HttpResponseRedirect('/')
-    if request.method == 'GET':
-        return HttpResponseRedirect('/')
 
 
 def user_logout(request):
     """Defines the logout behavior"""
     if request.method == 'POST':
         logout(request)
-        return HttpResponseRedirect('/')
-    if request.method == 'GET':
         return HttpResponseRedirect('/')
 
 
@@ -54,8 +50,6 @@ def register(request):
         user_form = UserForm(request.POST)
         if user_form.is_valid():
             user_form.save()
-        return HttpResponseRedirect('/')
-    if request.method == 'GET':
         return HttpResponseRedirect('/')
 
 
@@ -289,7 +283,7 @@ def export_tags(request):
                 response['Content-Disposition'] = 'attachment; filename="%s_%s_%s_tags.json"' % \
                                                   (vals[ids[0]], vals[ids[1]], vals[ids[2]])
             else:
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect('/error')
             return response
         except:
             return HttpResponseRedirect('/error')

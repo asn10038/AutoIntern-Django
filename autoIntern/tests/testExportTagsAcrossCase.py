@@ -35,10 +35,15 @@ class ExportTagsAcrossCaseTest(TestCase):
 
 
     def test_invalid_access(self):
+        response = self.client.post("/userLogin/", {
+            'username': 'Test',
+            'password': 'test'
+        })
+
         response = self.client.get('/exportTagsCase/')
         self.assertTrue("/" == response.url)
 
-    def testOutput(self):
+    def test_output(self):
         response = self.client.post("/userLogin/", {
             'username': 'Test',
             'password': 'test'

@@ -52,3 +52,10 @@ class CreateCaseTest(TestCase):
 
         case = Case.objects.all().filter(case_name='Case Test(1)')
         self.assertTrue(case.count() > 0)
+
+        response = self.client.post('/createCase/', {
+            'caseName': 'Case Test',
+        })
+
+        case = Case.objects.all().filter(case_name='Case Test(2)')
+        self.assertTrue(case.count() > 0)
