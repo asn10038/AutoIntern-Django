@@ -102,10 +102,12 @@ def valid_file_type(file_name):
     """
     Checks if a file is of an approved extension type
     """
-    valid_extensions = ['.txt']
-    ext = os.path.splitext(file_name)[1]
-
-    if ext in valid_extensions:
-        return True
+    # valid_extensions = ['.txt']
+    # ext = os.path.splitext(file_name)[1]
+    #
+    # if ext in valid_extensions:
+    #     return True
+    if '.txt' in file_name:
+        return True 
 
     return False
