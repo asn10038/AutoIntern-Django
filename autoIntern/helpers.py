@@ -108,6 +108,6 @@ def valid_file_type(file_name):
     # if ext in valid_extensions:
     #     return True
     if '.txt' in file_name:
-        return True 
+        return True
 
     return False
