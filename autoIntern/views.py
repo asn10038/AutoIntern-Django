@@ -165,24 +165,28 @@ def upload(request):
             new_document = None
             filename = str(request.FILES['uploadFile'])
 
-            # checks for .txt file
-            if not valid_file_type(filename):
+            # # checks for .txt file
+            # if not valid_file_type(filename):
+            #     context = {'documents': get_documents(),
+            #                'cases': get_cases(request), 'non_text': True}
+            #     return render(request, 'autoIntern/homepage.html', context)
+            try:
+                # if this is private upload
+                if request.POST['public'] == 'False':
+                    # presence of doc_name means it is note upload
+                    if 'document_name' in request.POST:
+                        new_document = get_document_by_header(request.FILES['uploadFile'], user, False,
+                                                              request.POST['document_name'])
+                    # if not note, is private document upload
+                    else:
+                        new_document = get_document_by_header(request.FILES['uploadFile'], user, False)
+                # otherwise it is just a public document upload
+                else:
+                    new_document = get_document_by_header(request.FILES['uploadFile'], user)
+            except:
                 context = {'documents': get_documents(),
                            'cases': get_cases(request), 'non_text': True}
                 return render(request, 'autoIntern/homepage.html', context)
-
-            # if this is private upload
-            if request.POST['public'] == 'False':
-                # presence of doc_name means it is note upload
-                if 'document_name' in request.POST:
-                    new_document = get_document_by_header(request.FILES['uploadFile'], user, False,
-                                                          request.POST['document_name'])
-                # if not note, is private document upload
-                else:
-                    new_document = get_document_by_header(request.FILES['uploadFile'], user, False)
-            # otherwise it is just a public document upload
-            else:
-                new_document = get_document_by_header(request.FILES['uploadFile'], user)
 
             # determine the case association
             case = None
