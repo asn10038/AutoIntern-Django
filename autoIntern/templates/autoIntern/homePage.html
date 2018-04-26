@@ -120,7 +120,7 @@
       <div class="modal-body">
         <form action="/upload/" method="post" enctype="multipart/form-data">
           {% csrf_token %}
-          <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile">
+          <input type="file" class=" btn btn-outline-default form-control-file" id="exampleFormControlFile1" name="uploadFile" required>
           <input type="hidden" name="public" value="True">
           <button type="submit" class="btn btn-outline-primary">Upload</button>
         </form>
